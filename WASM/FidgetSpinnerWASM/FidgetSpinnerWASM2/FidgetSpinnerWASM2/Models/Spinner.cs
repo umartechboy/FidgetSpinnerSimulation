@@ -57,9 +57,24 @@ namespace FidgetSpinnerWASM2.Models
             this.Magnets.Add(magnet);
             magnet.OnRequestToDraw += (s, e) => OnRequestToDraw?.Invoke(s, e);
         }
-        public void Draw(SKCanvas canvas)
+        public void Draw(SKCanvas canvas, bool showLabels)
         {
             var thD = 2 * Math.PI / Magnets.Count;
+            if (showLabels)
+            {
+                canvas.Save();
+                canvas.Scale(1, -1);
+                canvas.DrawText(ID.ToString(), Position.X, -Position.Y, new SKPaint(new SKFont()
+                {
+                    Size = 0.02F
+                })
+                {
+                    Color = SKColors.Blue.WithAlpha(150),
+                    IsStroke = false,
+                    IsAntialias = true
+                });
+                canvas.Restore();
+            }
             for (int ii = 0; ii < Magnets.Count; ii++) {
 
                 var thI = th + thD * (ii - 1);
@@ -78,6 +93,21 @@ namespace FidgetSpinnerWASM2.Models
                 paint.IsStroke = false;
                 paint.Color = paint.Color.WithAlpha(150);
                 canvas.DrawCircle(cx, cy, Magnets[ii].R, paint);
+                if (showLabels)
+                {
+                    canvas.Save();
+                    canvas.Scale(1, -1);
+                    canvas.DrawText((ii + 1).ToString(), cx, -cy, new SKPaint(new SKFont()
+                    {
+                        Size = 0.02F
+                    })
+                    {
+                        Color = SKColors.Blue.WithAlpha(150),
+                        IsStroke = false,
+                        IsAntialias = true
+                    });
+                    canvas.Restore();
+                }
                 if (IsPowered)
                     col = SKColors.Red;
                 else

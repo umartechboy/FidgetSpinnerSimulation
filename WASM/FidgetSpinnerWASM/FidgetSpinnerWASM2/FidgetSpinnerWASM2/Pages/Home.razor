@@ -26,12 +26,8 @@
                     <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" OnClick="sim.Play"></MudIconButton>
                     <MudIconButton Icon="@Icons.Material.Filled.Pause" OnClick="sim.Pause"></MudIconButton>
                     <MudIconButton Icon="@Icons.Material.Filled.Stop" OnClick="sim.Reset"></MudIconButton>
-                </MudPaper>
-            </MudItem>
-            <MudItem md="12">
-                <MudPaper Elevation="5" Class="pa-4">
-                    <MudText>Display</MudText>
                     <MudCheckBox @bind-Value="realTimeSim" Label="Real time update"></MudCheckBox>
+                    <MudCheckBox @bind-Value="showLabels" Label="Display Labels"></MudCheckBox>
                 </MudPaper>
             </MudItem>
             <MudItem md="12">
@@ -112,6 +108,7 @@
     List<Spinner> spinners { get => sim.spinners; }
     SkiaSharp.Views.Blazor.SKGLView skView;
     bool realTimeSim = false;
+    bool showLabels = false;
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -206,7 +203,7 @@
         canvas.Translate(e.Info.Width / 2, e.Info.Height / 2);
         canvas.Scale(e.Info.Width, -e.Info.Width); // width is 1 meter, origin is bottom left, normal
 
-        spinners.ForEach((s) => s.Draw(canvas));
+        spinners.ForEach((s) => s.Draw(canvas, showLabels));
         skView.Invalidate();
     }
 }
