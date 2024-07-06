@@ -35,22 +35,11 @@ namespace FidgetSpinnerWASM2.Models
             Position = position;
         }
         public double B { get; set; } = 0.002; // random Friction
+        public float BNmms { get => (float)(B * 1000); set { B = value / 1000.0F; } }
         public Vector3 Position { get; set; } // 3D position
-        public void SetXmm(float xmm)
-        {
-            Xmm = xmm;
-            OnRequestToDraw?.Invoke(this, EventArgs.Empty);
-        }
-        public void SetYmm(float ymm)
-        {
-            Ymm = ymm;
-            OnRequestToDraw?.Invoke(this, EventArgs.Empty);
-        }
-        public void SetRmm(float rmm)
-        {
-            Rmm = rmm;
-            OnRequestToDraw?.Invoke(this, EventArgs.Empty);
-        }
+        
+        public float RPM { get => (float)(w / 2 / Math.PI * 60); set => w = value / 60.0F * 2 * Math.PI; }
+       
         public float Xmm { get => Position.X * 1000; set { Position = new Vector3(value / 1000.0F, Position.Y, Position.Z); } }
         public float Ymm { get => Position.Y * 1000; set { Position = new Vector3(Position.X, value / 1000.0F, Position.Z); } }
         public float Rmm { 

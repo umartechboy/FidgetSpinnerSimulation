@@ -39,9 +39,12 @@
                         @foreach (var spinner in spinners)
                         {
                             <MudNavGroup Title="@("Spinner " + spinner.ID)" Expanded="false">
-                                <MudSlider T="float" Value="@spinner.Rmm" ValueChanged="(v) => spinner.SetRmm(v)" Min="1" Max="500">Radius (mm) = @spinner.Rmm</MudSlider>
-                                <MudSlider T="float" Value="@spinner.Xmm" ValueChanged="(v) => spinner.SetXmm(v)" Min="-500" Max="500">Center X (mm) = @spinner.Xmm</MudSlider>
-                                <MudSlider T="float" Value="@spinner.Ymm" ValueChanged="(v) => spinner.SetYmm(v)" Min="-500" Max="500">Center Y (mm) = @spinner.Ymm</MudSlider>
+                                <MudSlider T="float" Value="@spinner.Rmm" ValueChanged="(v) => spinner.Rmm = v" Min="1" Max="500">Radius (mm) = @spinner.Rmm</MudSlider>
+                                <MudSlider T="float" Value="@spinner.Xmm" ValueChanged="(v) => spinner.Xmm = v" Min="-500" Max="500">Center X (mm) = @spinner.Xmm</MudSlider>
+                                <MudSlider T="float" Value="@spinner.Ymm" ValueChanged="(v) => spinner.Ymm = v" Min="-500" Max="500">Center Y (mm) = @spinner.Ymm</MudSlider>
+                                <MudCheckBox T="bool" Value="@spinner.IsPowered" ValueChanged="(v) => spinner.IsPowered = v" Label="Constant Speed"></MudCheckBox>
+                                <MudSlider T="float" Value="@spinner.RPM" ValueChanged="(v) => spinner.RPM = v" Min="-1000" Max="1000">Fixed Speed (rpm) = @(spinner.RPM)</MudSlider>
+                                <MudSlider T="float" Value="@spinner.BNmms" ValueChanged="(v) => spinner.BNmms = v" Min="0" Max="5">Friction (N.mm.s) = @spinner.BNmms</MudSlider>
                                 <MudNavLink>Magnets</MudNavLink>
 
                                 @if (spinner.Magnets.Count == 0)
@@ -51,10 +54,11 @@
                                 @foreach (var magnet in spinner.Magnets)
                                 {
                                     <MudNavGroup Title="@("Magnet " + (spinner.Magnets.IndexOf(magnet) + 1))" Expanded="false">
-                                        <MudSlider T="float" Value="@magnet.Rmm" ValueChanged="(v) => magnet.SetRmm(v)" Min="1" Max="50">Radius (mm) = @magnet.Rmm</MudSlider>
-                                        <MudSlider T="float" Value="@magnet.Hmm" ValueChanged="(v) => magnet.SetHmm(v)" Min="1" Max="50">Height (mm) = @magnet.Hmm</MudSlider>
-                                        <MudSlider T="float" Value="@magnet.Massg" ValueChanged="(v) => magnet.SetMassg(v)" Min="1" Max="200">Mass (g) = @magnet.Massg</MudSlider>
-                                        <MudSlider Value="@magnet.Massg" Min="0" Max="200">Mass (g)</MudSlider>
+                                        <MudCheckBox T="bool" Value="@magnet.Polarity" ValueChanged="(v) => magnet.Polarity = v" Label="North is Up"></MudCheckBox>
+                                        <MudSlider T="float" Value="@magnet.Rmm" ValueChanged="(v) => magnet.Rmm = v" Min="1" Max="50">Radius (mm) = @magnet.Rmm</MudSlider>
+                                        <MudSlider T="float" Value="@magnet.Hmm" ValueChanged="(v) => magnet.Hmm = v" Min="1" Max="50">Height (mm) = @magnet.Hmm</MudSlider>
+                                        <MudSlider T="float" Value="@magnet.Massg" ValueChanged="(v) => magnet.Massg = v" Min="1" Max="200">Mass (g) = @magnet.Massg</MudSlider>
+                                        
                                         <MudButton StartIcon="@Icons.Material.Filled.Add">Add Magnet</MudButton>
                                     </MudNavGroup>
                                 }
@@ -110,11 +114,18 @@
     {
         skView.Invalidate();
     }
+    DateTime lastPaint = DateTime.Now;
     public void OnPaint(SkiaSharp.Views.Blazor.SKPaintGLSurfaceEventArgs e)
     {
         if (sim.canStep)
         {
-            sim.Step();
+            var toSim = (DateTime.Now - lastPaint).TotalMilliseconds;
+            lastPaint = DateTime.Now;
+            if (toSim > 1000)
+                toSim = 1000;
+            var start = sim.t;
+            while(sim.t - start < toSim / 1000.0D)
+                sim.Step();
             StateHasChanged();
         }
         var canvas = e.Surface.Canvas;
