@@ -7,22 +7,60 @@
 <PageTitle>Home</PageTitle>
 <MudGrid>
     <MudItem md="8">
-    <div style="width: 100%; height: 80vh; border: 1px solid black;"
-    @onmousemove="mouseMove">
-        <SkiaSharp.Views.Blazor.SKGLView @ref="skView"
-        OnPaintSurface="OnPaint"
-        IgnorePixelScaling="true" style="width: 100%; height: 100%;"
-        ></SkiaSharp.Views.Blazor.SKGLView>
-    </div>
+        <MudPaper Elevation="3">
+        <div style="width: 100%; height: 100vh;"
+        @onmousemove="mouseMove">
+            <SkiaSharp.Views.Blazor.SKGLView @ref="skView"
+            OnPaintSurface="OnPaint"
+            IgnorePixelScaling="true" style="width: 100%; height: 100%;"
+            ></SkiaSharp.Views.Blazor.SKGLView>
+                </div>
+        </MudPaper>
     </MudItem>
-    <MudItem md="4">
+    <MudItem md="4" Style="height: 100vh">
+        <MudPaper Height="100vh">
+            <MudNavMenu>
+                <MudText Typo="Typo.h6" Class="px-4">Fidget Spinner Simulator</MudText>
+                @if (spinners.Count == 0)
+                {
+                    <MudNavLink Disabled="true">No spinners added</MudNavLink>
+                }
+                @foreach (var spinner in spinners)
+                {
+                    <MudNavGroup Title="@("Spinner " + spinner.ID)" Expanded="false">
+                        <MudSlider T="float" Value="@spinner.Rmm" ValueChanged="(v) => spinner.SetRmm(v)" Min="1" Max="500">Radius (mm) = @spinner.Rmm</MudSlider>
+                        <MudSlider T="float" Value="@spinner.Xmm" ValueChanged="(v) => spinner.SetXmm(v)" Min="-500" Max="500">Center X (mm) = @spinner.Xmm</MudSlider>
+                        <MudSlider T="float" Value="@spinner.Ymm" ValueChanged="(v) => spinner.SetYmm(v)" Min="-500" Max="500">Center Y (mm) = @spinner.Ymm</MudSlider>
+                        <MudNavLink >Magnets</MudNavLink>
 
+                        @if (spinner.Magnets.Count == 0)
+                        {
+                            <MudNavLink Disabled="true">No Magnets added</MudNavLink>
+                        }
+                        @foreach (var magnet in spinner.Magnets)
+                        {
+                            <MudNavGroup Title="@("Magnet " + (spinner.Magnets.IndexOf(magnet) + 1))" Expanded="false">
+                                <MudSlider T="float" Value="@magnet.Rmm" ValueChanged="(v) => magnet.SetRmm(v)" Min="1" Max="50">Radius (mm) = @magnet.Rmm</MudSlider>
+                                <MudSlider T="float" Value="@magnet.Hmm" ValueChanged="(v) => magnet.SetHmm(v)" Min="1" Max="50">Height (mm) = @magnet.Hmm</MudSlider>
+                                <MudSlider T="float" Value="@magnet.Massg" ValueChanged="(v) => magnet.SetMassg(v)" Min="1" Max="200">Mass (g) = @magnet.Massg</MudSlider>
+                                <MudSlider Value="@magnet.Massg" Min="0" Max="200">Mass (g)</MudSlider>
+                                <MudButton StartIcon="@Icons.Material.Filled.Add">Add Magnet</MudButton>
+                            </MudNavGroup>
+                        }
+                        <MudButton StartIcon="@Icons.Material.Filled.Add">Add Magnet</MudButton>
+                    </MudNavGroup>
+                }
+                <MudButton StartIcon="@Icons.Material.Filled.Add">Add Spinner</MudButton>
+            </MudNavMenu>
+        </MudPaper>
     </MudItem>
 </MudGrid>
 
 @code{
+    public Spinner selectedSpinner;
     List<Spinner> spinners = new List<Spinner>();
     SkiaSharp.Views.Blazor.SKGLView skView;
+    
     protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender){
@@ -32,7 +70,9 @@
         new Spinner(4, 40 / 1000, new Vector3(centerToCenter_mm * 1, 0, 0) / 1000, new bool [] {true, false, true, false}),
         new Spinner(4, 40 / 1000, new Vector3(centerToCenter_mm * 2, 0, 0) / 1000, new bool [] {true, false, true, false}),
     });
-            skView.Invalidate();
+            foreach(var spinner in spinners)
+                spinner.OnRequestToDraw += (s, e) => skView.Invalidate();
+            new Task(async () => { await Task.Delay(2000); StateHasChanged(); }).Start();
         }
     }
     public void mouseMove(MouseEventArgs e)
@@ -46,8 +86,6 @@
         canvas.ResetMatrix();
         canvas.Translate(e.Info.Width / 2, e.Info.Height / 2);
         canvas.Scale(e.Info.Width, -e.Info.Width); // width is 1 meter, origin is bottom left, normal
-        
-        canvas.DrawRect(0.005F, 0.005F, 0.1F, 0.2F, new SKPaint() { Color = SKColors.Blue });
         
         spinners.ForEach((s) => s.Draw(canvas));
     }

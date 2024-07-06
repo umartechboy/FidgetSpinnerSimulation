@@ -11,11 +11,14 @@ namespace FidgetSpinnerWASM2.Models
     public class Spinner
     {
         public List<Magnet> Magnets { get; set; } = new List<Magnet>();
-
+        public event EventHandler OnRequestToDraw;
         public Spinner() { }
         public int N { get => Magnets.Count; }
+        static int spinnerID = 1;
+        public int ID { get; private set; }
         public Spinner(int nMagnets, float r, Vector3 position, params bool [] polarity)
         {
+            ID = spinnerID++;
             if (polarity == null)
                 polarity = new bool [] { true};
             while (polarity.Length < nMagnets)
@@ -27,11 +30,32 @@ namespace FidgetSpinnerWASM2.Models
                 polarity = pp.ToArray();
             }
             foreach(var p in polarity)
-                Magnets.Add(new Magnet() { Polarity = p });
+                AddMagnet(new Magnet() { Polarity = p });
+            
             Position = position;
         }
         public double B { get; set; } = 0.002; // random Friction
         public Vector3 Position { get; set; } // 3D position
+        public void SetXmm(float xmm)
+        {
+            Xmm = xmm;
+            OnRequestToDraw?.Invoke(this, EventArgs.Empty);
+        }
+        public void SetYmm(float ymm)
+        {
+            Ymm = ymm;
+            OnRequestToDraw?.Invoke(this, EventArgs.Empty);
+        }
+        public void SetRmm(float rmm)
+        {
+            Rmm = rmm;
+            OnRequestToDraw?.Invoke(this, EventArgs.Empty);
+        }
+        public float Xmm { get => Position.X * 1000; set { Position = new Vector3(value / 1000.0F, Position.Y, Position.Z); } }
+        public float Ymm { get => Position.Y * 1000; set { Position = new Vector3(Position.X, value / 1000.0F, Position.Z); } }
+        public float Rmm { 
+            get => R * 1000; 
+            set => R = value / 1000.0F; }
         public float R { get; set; } = 40 / 1000.0F; // Radius.Also used to initialize magnets
         public double tau { get; set; } = 0; // torque, for reference only
         public double a { get; set; } = 0; // rotational acceleration, for reference only
@@ -42,6 +66,7 @@ namespace FidgetSpinnerWASM2.Models
         public void AddMagnet(Magnet magnet)
         {
             this.Magnets.Add(magnet);
+            magnet.OnRequestToDraw += (s, e) => OnRequestToDraw?.Invoke(s, e);
         }
         public void Draw(SKCanvas canvas)
         {
