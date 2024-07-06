@@ -45,12 +45,26 @@
                         @foreach (var spinner in spinners)
                         {
                             <MudNavGroup Title="@("Spinner " + spinner.ID)" Expanded="false">
-                                <MudSlider T="float" Value="@spinner.Rmm" ValueChanged="(v) => spinner.Rmm = v" Min="1" Max="500">Radius (mm) = @spinner.Rmm</MudSlider>
-                                <MudSlider T="float" Value="@spinner.Xmm" ValueChanged="(v) => spinner.Xmm = v" Min="-500" Max="500">Center X (mm) = @spinner.Xmm</MudSlider>
-                                <MudSlider T="float" Value="@spinner.Ymm" ValueChanged="(v) => spinner.Ymm = v" Min="-500" Max="500">Center Y (mm) = @spinner.Ymm</MudSlider>
-                                <MudCheckBox T="bool" Value="@spinner.IsPowered" ValueChanged="(v) => spinner.IsPowered = v" Label="Constant Speed"></MudCheckBox>
-                                <MudSlider T="float" Value="@spinner.RPM" ValueChanged="(v) => spinner.RPM = v" Min="-1000" Max="1000">Fixed Speed (rpm) = @(spinner.RPM)</MudSlider>
-                                <MudSlider T="float" Value="@spinner.BNmms" ValueChanged="(v) => spinner.BNmms = v" Min="0" Max="5">Friction (N.mm.s) = @spinner.BNmms</MudSlider>
+                                <MudItem Style="padding-left: 48px">
+                                    <MudButton Class="mx-6" StartIcon="@Icons.Material.Filled.Remove" Color="Color.Error" OnClick="() => {spinners.Remove(spinner); StateHasChanged();}">Remove</MudButton>
+                                </MudItem>
+                                <MudItem Style="padding-left: 48px">
+                                    <MudSlider T="float" Value="@spinner.Rmm" ValueChanged="(v) => spinner.Rmm = v" Min="1" Max="500">Radius (mm) = @spinner.Rmm</MudSlider>
+                                </MudItem>
+                                <MudItem Style="padding-left: 48px">
+                                    <MudSlider T="float" Value="@spinner.Xmm" ValueChanged="(v) => spinner.Xmm = v" Min="-500" Max="500">Center X (mm) = @spinner.Xmm</MudSlider>
+                                </MudItem>
+                                <MudItem Style="padding-left: 48px">
+                                    <MudSlider T="float" Value="@spinner.Ymm" ValueChanged="(v) => spinner.Ymm = v" Min="-500" Max="500">Center Y (mm) = @spinner.Ymm</MudSlider></MudItem>
+                                <MudItem Style="padding-left: 48px">
+                                    <MudCheckBox T="bool" Value="@spinner.IsPowered" ValueChanged="(v) => spinner.IsPowered = v" Label="Constant Speed"></MudCheckBox>
+                                </MudItem>
+                                <MudItem Style="padding-left: 48px">
+                                    <MudSlider T="float" Value="@spinner.RPM" ValueChanged="(v) => spinner.RPM = v" Min="-1000" Max="1000">Fixed Speed (rpm) = @(spinner.RPM)</MudSlider>
+                                </MudItem>
+                                <MudItem Style="padding-left: 48px">
+                                    <MudSlider T="float" Value="@spinner.BNmms" ValueChanged="(v) => spinner.BNmms = v" Min="0" Max="5">Friction (N.mm.s) = @spinner.BNmms</MudSlider>
+                                </MudItem>
                                 <MudNavLink>Magnets</MudNavLink>
 
                                 @if (spinner.Magnets.Count == 0)
@@ -60,18 +74,31 @@
                                 @foreach (var magnet in spinner.Magnets)
                                 {
                                     <MudNavGroup Title="@("Magnet " + (spinner.Magnets.IndexOf(magnet) + 1))" Expanded="false">
-                                        <MudCheckBox T="bool" Value="@magnet.Polarity" ValueChanged="(v) => magnet.Polarity = v" Label="North is Up"></MudCheckBox>
-                                        <MudSlider T="float" Value="@magnet.Rmm" ValueChanged="(v) => magnet.Rmm = v" Min="1" Max="50">Radius (mm) = @magnet.Rmm</MudSlider>
-                                        <MudSlider T="float" Value="@magnet.Hmm" ValueChanged="(v) => magnet.Hmm = v" Min="1" Max="50">Height (mm) = @magnet.Hmm</MudSlider>
-                                        <MudSlider T="float" Value="@magnet.Massg" ValueChanged="(v) => magnet.Massg = v" Min="1" Max="200">Mass (g) = @magnet.Massg</MudSlider>
-                                        
-                                        <MudButton StartIcon="@Icons.Material.Filled.Add">Add Magnet</MudButton>
+                                        <MudItem Style="padding-left: 96px">
+                                            <MudButton StartIcon="@Icons.Material.Filled.Remove" Color="Color.Error" OnClick="() => { spinner.Magnets.Remove(magnet); StateHasChanged();}">Remove</MudButton>
+                                        </MudItem>
+                                        <MudItem Style="padding-left: 96px">
+                                            <MudCheckBox T="bool" Value="@magnet.Polarity" ValueChanged="(v) => magnet.Polarity = v" Label="North is Up"></MudCheckBox>
+                                        </MudItem>
+                                        <MudItem Style="padding-left: 96px">
+                                            <MudSlider T="float" Value="@magnet.Rmm" ValueChanged="(v) => magnet.Rmm = v" Min="1" Max="50">Radius (mm) = @magnet.Rmm</MudSlider>
+                                        </MudItem>
+                                        <MudItem Style="padding-left: 96px">
+                                            <MudSlider T="float" Value="@magnet.Hmm" ValueChanged="(v) => magnet.Hmm = v" Min="1" Max="50">Height (mm) = @magnet.Hmm</MudSlider>
+                                        </MudItem>
+                                        <MudItem Style="padding-left: 96px">
+                                            <MudSlider T="float" Value="@magnet.Massg" ValueChanged="(v) => magnet.Massg = v" Min="1" Max="200">Mass (g) = @magnet.Massg</MudSlider>
+                                        </MudItem>
                                     </MudNavGroup>
                                 }
-                                <MudButton StartIcon="@Icons.Material.Filled.Add">Add Magnet</MudButton>
+                                <MudItem Style="padding-left: 48px">
+                                    <MudButton StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" OnClick="() => AddNewMagnet(spinner)">Add Magnet</MudButton>
+                                </MudItem>
                             </MudNavGroup>
                         }
-                        <MudButton StartIcon="@Icons.Material.Filled.Add">Add Spinner</MudButton>
+                        <MudItem Style="padding-left: 24">
+                            <MudButton StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" OnClick="AddSpinner">Add Spinner</MudButton>
+                        </MudItem>
                     </MudNavMenu>
                 </MudPaper>
             </MudItem>
@@ -115,6 +142,45 @@
             }).Start();
 
         }
+    }
+    public void AddSpinner()
+    {
+        bool breakFinder = false;
+        float x = 0, y = 0;
+        for (y = 0.0F; y < 0.4; y += 0.1F)
+        {
+            for (x = -0.4F; x < 0.4; x += 0.1F)
+            {
+                bool allClear = true;
+                foreach (var spinner in spinners)
+                {
+                    var thisRect = new System.Drawing.RectangleF(x, y, 0.1F, 0.1F);
+                    var spinnerRect = new System.Drawing.RectangleF(spinner.Position.X - spinner.R * 1.5F, spinner.Position.Y - spinner.R * 1.5F, spinner.R * 3, spinner.R * 3);
+                    if (thisRect.IntersectsWith(spinnerRect) || thisRect.Contains(spinnerRect) || spinnerRect.Contains(thisRect))
+                    {
+                        allClear = false;
+                        break;
+                    }
+                }
+                if (allClear)
+                {
+                    breakFinder = true;
+                    break;
+                }
+            }
+            if (breakFinder)
+                break;
+        }
+        var s = new Spinner(4, 40 / 1000, new Vector3(x, y, 0), new bool[] { true, false, true, false });
+        s.OnRequestToDraw += (s, e) => skView.Invalidate();
+
+        spinners.Add(s);
+        StateHasChanged();
+    }
+    public void AddNewMagnet (Spinner spinner)
+    {
+        spinner.AddMagnet(new Magnet());
+        StateHasChanged();
     }
     public void mouseMove(MouseEventArgs e)
     {
