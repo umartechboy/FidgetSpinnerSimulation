@@ -1,0 +1,54 @@
+﻿@page "/"
+@using FidgetSpinnerWASM2.Models
+@using SkiaSharp
+@using SkiaSharp.Views
+@using System.Numerics
+
+<PageTitle>Home</PageTitle>
+<MudGrid>
+    <MudItem md="8">
+    <div style="width: 100%; height: 80vh; border: 1px solid black;"
+    @onmousemove="mouseMove">
+        <SkiaSharp.Views.Blazor.SKGLView @ref="skView"
+        OnPaintSurface="OnPaint"
+        IgnorePixelScaling="true" style="width: 100%; height: 100%;"
+        ></SkiaSharp.Views.Blazor.SKGLView>
+    </div>
+    </MudItem>
+    <MudItem md="4">
+
+    </MudItem>
+</MudGrid>
+
+@code{
+    List<Spinner> spinners = new List<Spinner>();
+    SkiaSharp.Views.Blazor.SKGLView skView;
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender){
+            float centerToCenter_mm = 100;
+            spinners.AddRange(new Spinner[]{
+        new Spinner(4, 40 / 1000, new Vector3(centerToCenter_mm * 0, 0, 0), new bool [] {true, false, true, false}),
+        new Spinner(4, 40 / 1000, new Vector3(centerToCenter_mm * 1, 0, 0) / 1000, new bool [] {true, false, true, false}),
+        new Spinner(4, 40 / 1000, new Vector3(centerToCenter_mm * 2, 0, 0) / 1000, new bool [] {true, false, true, false}),
+    });
+            skView.Invalidate();
+        }
+    }
+    public void mouseMove(MouseEventArgs e)
+    {
+        skView.Invalidate();
+    }
+    public void OnPaint(SkiaSharp.Views.Blazor.SKPaintGLSurfaceEventArgs e)
+    {
+        var canvas = e.Surface.Canvas;
+        canvas.Clear(SKColors.White);
+        canvas.ResetMatrix();
+        canvas.Translate(e.Info.Width / 2, e.Info.Height / 2);
+        canvas.Scale(e.Info.Width, -e.Info.Width); // width is 1 meter, origin is bottom left, normal
+        
+        canvas.DrawRect(0.005F, 0.005F, 0.1F, 0.2F, new SKPaint() { Color = SKColors.Blue });
+        
+        spinners.ForEach((s) => s.Draw(canvas));
+    }
+}
