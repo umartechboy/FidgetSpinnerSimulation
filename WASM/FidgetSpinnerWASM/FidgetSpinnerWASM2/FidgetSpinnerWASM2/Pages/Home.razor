@@ -18,49 +18,64 @@
         </MudPaper>
     </MudItem>
     <MudItem md="4" Style="height: 100vh">
-        <MudPaper Height="100vh">
-            <MudNavMenu>
-                <MudText Typo="Typo.h6" Class="px-4">Fidget Spinner Simulator</MudText>
-                @if (spinners.Count == 0)
-                {
-                    <MudNavLink Disabled="true">No spinners added</MudNavLink>
-                }
-                @foreach (var spinner in spinners)
-                {
-                    <MudNavGroup Title="@("Spinner " + spinner.ID)" Expanded="false">
-                        <MudSlider T="float" Value="@spinner.Rmm" ValueChanged="(v) => spinner.SetRmm(v)" Min="1" Max="500">Radius (mm) = @spinner.Rmm</MudSlider>
-                        <MudSlider T="float" Value="@spinner.Xmm" ValueChanged="(v) => spinner.SetXmm(v)" Min="-500" Max="500">Center X (mm) = @spinner.Xmm</MudSlider>
-                        <MudSlider T="float" Value="@spinner.Ymm" ValueChanged="(v) => spinner.SetYmm(v)" Min="-500" Max="500">Center Y (mm) = @spinner.Ymm</MudSlider>
-                        <MudNavLink >Magnets</MudNavLink>
-
-                        @if (spinner.Magnets.Count == 0)
+        <MudGrid>
+            <MudItem md="12">
+                <MudPaper Elevation="5">
+                    <MudText>Simulation control</MudText>
+                    <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" OnClick="sim.Play"></MudIconButton>
+                    <MudIconButton Icon="@Icons.Material.Filled.Pause" OnClick="sim.Pause"></MudIconButton>
+                    <MudIconButton Icon="@Icons.Material.Filled.Stop" OnClick="sim.Reset"></MudIconButton>
+                    <MudText>Time: @sim.t</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem md="12">
+                <MudPaper Elevation="5">
+                    <MudNavMenu>
+                        <MudText Typo="Typo.h6" Class="px-4">Fidget Spinner Simulator</MudText>
+                        @if (spinners.Count == 0)
                         {
-                            <MudNavLink Disabled="true">No Magnets added</MudNavLink>
+                            <MudNavLink Disabled="true">No spinners added</MudNavLink>
                         }
-                        @foreach (var magnet in spinner.Magnets)
+                        @foreach (var spinner in spinners)
                         {
-                            <MudNavGroup Title="@("Magnet " + (spinner.Magnets.IndexOf(magnet) + 1))" Expanded="false">
-                                <MudSlider T="float" Value="@magnet.Rmm" ValueChanged="(v) => magnet.SetRmm(v)" Min="1" Max="50">Radius (mm) = @magnet.Rmm</MudSlider>
-                                <MudSlider T="float" Value="@magnet.Hmm" ValueChanged="(v) => magnet.SetHmm(v)" Min="1" Max="50">Height (mm) = @magnet.Hmm</MudSlider>
-                                <MudSlider T="float" Value="@magnet.Massg" ValueChanged="(v) => magnet.SetMassg(v)" Min="1" Max="200">Mass (g) = @magnet.Massg</MudSlider>
-                                <MudSlider Value="@magnet.Massg" Min="0" Max="200">Mass (g)</MudSlider>
+                            <MudNavGroup Title="@("Spinner " + spinner.ID)" Expanded="false">
+                                <MudSlider T="float" Value="@spinner.Rmm" ValueChanged="(v) => spinner.SetRmm(v)" Min="1" Max="500">Radius (mm) = @spinner.Rmm</MudSlider>
+                                <MudSlider T="float" Value="@spinner.Xmm" ValueChanged="(v) => spinner.SetXmm(v)" Min="-500" Max="500">Center X (mm) = @spinner.Xmm</MudSlider>
+                                <MudSlider T="float" Value="@spinner.Ymm" ValueChanged="(v) => spinner.SetYmm(v)" Min="-500" Max="500">Center Y (mm) = @spinner.Ymm</MudSlider>
+                                <MudNavLink>Magnets</MudNavLink>
+
+                                @if (spinner.Magnets.Count == 0)
+                                {
+                                    <MudNavLink Disabled="true">No Magnets added</MudNavLink>
+                                }
+                                @foreach (var magnet in spinner.Magnets)
+                                {
+                                    <MudNavGroup Title="@("Magnet " + (spinner.Magnets.IndexOf(magnet) + 1))" Expanded="false">
+                                        <MudSlider T="float" Value="@magnet.Rmm" ValueChanged="(v) => magnet.SetRmm(v)" Min="1" Max="50">Radius (mm) = @magnet.Rmm</MudSlider>
+                                        <MudSlider T="float" Value="@magnet.Hmm" ValueChanged="(v) => magnet.SetHmm(v)" Min="1" Max="50">Height (mm) = @magnet.Hmm</MudSlider>
+                                        <MudSlider T="float" Value="@magnet.Massg" ValueChanged="(v) => magnet.SetMassg(v)" Min="1" Max="200">Mass (g) = @magnet.Massg</MudSlider>
+                                        <MudSlider Value="@magnet.Massg" Min="0" Max="200">Mass (g)</MudSlider>
+                                        <MudButton StartIcon="@Icons.Material.Filled.Add">Add Magnet</MudButton>
+                                    </MudNavGroup>
+                                }
                                 <MudButton StartIcon="@Icons.Material.Filled.Add">Add Magnet</MudButton>
                             </MudNavGroup>
                         }
-                        <MudButton StartIcon="@Icons.Material.Filled.Add">Add Magnet</MudButton>
-                    </MudNavGroup>
-                }
-                <MudButton StartIcon="@Icons.Material.Filled.Add">Add Spinner</MudButton>
-            </MudNavMenu>
-        </MudPaper>
+                        <MudButton StartIcon="@Icons.Material.Filled.Add">Add Spinner</MudButton>
+                    </MudNavMenu>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
     </MudItem>
 </MudGrid>
 
 @code{
     public Spinner selectedSpinner;
-    List<Spinner> spinners = new List<Spinner>();
+    public Simulation sim = new Simulation();
+    List<Spinner> spinners { get => sim.spinners; }
     SkiaSharp.Views.Blazor.SKGLView skView;
-    
+
+
     protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender){
@@ -70,9 +85,25 @@
         new Spinner(4, 40 / 1000, new Vector3(centerToCenter_mm * 1, 0, 0) / 1000, new bool [] {true, false, true, false}),
         new Spinner(4, 40 / 1000, new Vector3(centerToCenter_mm * 2, 0, 0) / 1000, new bool [] {true, false, true, false}),
     });
+
+            spinners[0].IsPowered = true;
+            spinners[0].w = 2;
             foreach(var spinner in spinners)
                 spinner.OnRequestToDraw += (s, e) => skView.Invalidate();
             new Task(async () => { await Task.Delay(2000); StateHasChanged(); }).Start();
+            sim.OnRequestToDraw += (s, e) => skView.Invalidate();
+            sim.OnRequestToUpdateState += (s, e) => StateHasChanged();
+
+            new Task(async () =>
+            {
+                await Task.Delay(1000);
+                while (true)
+                {
+                    skView.Invalidate();
+                    await Task.Delay(20);
+                }
+            }).Start();
+
         }
     }
     public void mouseMove(MouseEventArgs e)
@@ -81,12 +112,18 @@
     }
     public void OnPaint(SkiaSharp.Views.Blazor.SKPaintGLSurfaceEventArgs e)
     {
+        if (sim.canStep)
+        {
+            sim.Step();
+            StateHasChanged();
+        }
         var canvas = e.Surface.Canvas;
         canvas.Clear(SKColors.White);
         canvas.ResetMatrix();
         canvas.Translate(e.Info.Width / 2, e.Info.Height / 2);
         canvas.Scale(e.Info.Width, -e.Info.Width); // width is 1 meter, origin is bottom left, normal
-        
+
         spinners.ForEach((s) => s.Draw(canvas));
+        skView.Invalidate();
     }
 }
