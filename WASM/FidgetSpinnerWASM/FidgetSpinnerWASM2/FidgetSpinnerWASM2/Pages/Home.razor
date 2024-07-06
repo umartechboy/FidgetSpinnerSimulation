@@ -20,12 +20,18 @@
     <MudItem md="4" Style="height: 100vh">
         <MudGrid>
             <MudItem md="12">
-                <MudPaper Elevation="5">
+                <MudPaper Elevation="5" Class="pa-4">
                     <MudText>Simulation control</MudText>
+                    <MudText>Time: @sim.t.ToString("F4")</MudText>
                     <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" OnClick="sim.Play"></MudIconButton>
                     <MudIconButton Icon="@Icons.Material.Filled.Pause" OnClick="sim.Pause"></MudIconButton>
                     <MudIconButton Icon="@Icons.Material.Filled.Stop" OnClick="sim.Reset"></MudIconButton>
-                    <MudText>Time: @sim.t</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem md="12">
+                <MudPaper Elevation="5" Class="pa-4">
+                    <MudText>Display</MudText>
+                    <MudCheckBox @bind-Value="realTimeSim" Label="Real time update"></MudCheckBox>
                 </MudPaper>
             </MudItem>
             <MudItem md="12">
@@ -78,7 +84,7 @@
     public Simulation sim = new Simulation();
     List<Spinner> spinners { get => sim.spinners; }
     SkiaSharp.Views.Blazor.SKGLView skView;
-
+    bool realTimeSim = false;
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -121,8 +127,8 @@
         {
             var toSim = (DateTime.Now - lastPaint).TotalMilliseconds;
             lastPaint = DateTime.Now;
-            if (toSim > 1000)
-                toSim = 1000;
+            if (toSim > (realTimeSim ? 1000:10))
+                toSim = realTimeSim ? 1000 : 10;
             var start = sim.t;
             while(sim.t - start < toSim / 1000.0D)
                 sim.Step();
