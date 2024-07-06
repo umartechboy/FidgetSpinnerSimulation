@@ -29,10 +29,13 @@ for is1 = 1:length(spinner1.Magnets) % itereate through spinner 1 magnets
         f2 = MagFieldFromDistance(magnet2.R, magnet2.H, magnet2.Polarity); % field 2
         % find out the unit vector in this direction first
         d_mag = sqrt(sum(d.^2));
-        F_mag = f1 * f2 / d_mag ^ 3; % lets assume that the field varies cubically
+        F_mag = f1 * f2 / d_mag ^ 3; % lets assume that the field varies cubically. 
         F_u = d / d_mag;
         F = F_mag * F_u;
         
+        if (F_mag > 1000 || F_mag < -1000)
+            ff= 0;
+        end
         tau = cross(r, F);
         totalTorque = totalTorque + tau;
     end

@@ -4,12 +4,12 @@ clc;
 
 centerToCenter_mm = 100;
 spinners = [...
-    makeSpinner(4, 40/1000, [centerToCenter_mm * 0, 0]), ...
-    makeSpinner(4, 40/1000, [centerToCenter_mm * 1, 0] / 1000)...
-    makeSpinner(4, 40/1000, [centerToCenter_mm * 2, 0] / 1000)...
+    makeSpinner(4, 40/1000, [centerToCenter_mm * 0, 0], [true, false, true, false]), ...
+    makeSpinner(4, 40/1000, [centerToCenter_mm * 1, 0] / 1000, [true, false, true, false])...
+    makeSpinner(4, 40/1000, [centerToCenter_mm * 2, 0] / 1000, [true, false, true, false])...
     ];
 spinners(1).IsPowered = true;
-spinners(1).w = 0.2;
+spinners(1).w = 2;
 
 fMain = figure; 
 grid on; axis equal;
@@ -31,15 +31,16 @@ velocities = [,];
 displacements = [,];
 
 dt = 0.0001; % ti
-tic;
-lastPlotAt = tic;
-for t = 0:dt:30
+lastPlotAt = 0;
+t = 0;
+while t < 30
     torques(1, end + 1) = 0;
     netTorques(1, end + 1) = 0;
     frictions(1, end + 1) = 0;
     accelerations(1, end + 1) = 0;
     velocities(1, end + 1) = 0;
     displacements(1, end + 1) = 0;
+    maxdth = 0;
     for ii=1:length(spinners)    
         tauOnii = 0;
         for jj=1:length(spinners)
@@ -63,6 +64,25 @@ for t = 0:dt:30
             tauF = -spinners(ii).w * spinners(ii).B;
             % calculate angular velocities
             alpha = (tauOnii(3) + tauF) / spinners(ii).I; %% We only need the vertical component of rotation
+            
+            if (alpha > 100000 || alpha < -100000)
+                f =1;
+            end
+            if (isinf(spinners(ii).w * spinners(ii).B))
+                f = 1;
+            end
+            if (isnan(spinners(ii).w * spinners(ii).B))
+                f = 1;
+            end
+            
+            if (isinf(spinners(ii).w + alpha * dt))
+                f = 1;
+            end
+            if (isnan(spinners(ii).w + alpha * dt))
+                f = 1;
+            end
+            spinners(ii).a = alpha;
+            spinners(ii).tau = tauOnii(3) + tauF;
             spinners(ii).w = spinners(ii).w + alpha * dt; 
             torques(ii, end) = tauOnii(3);
             netTorques(ii, end) = tauOnii(3) + tauF;
@@ -75,13 +95,25 @@ for t = 0:dt:30
         % we have the velocities now, calculate final positions
         spinners(ii).th = spinners(ii).th + spinners(ii).w * dt; 
         displacements(ii, end) = spinners(ii).th;
+        if (spinners(ii).w * dt > maxdth)
+            maxdth = spinners(ii).w * dt;
+        end
     end
+    % fine tune dt;
+    dt = 0.1 / maxdth;
+    if (dt > 0.002)
+        dt = 0.002;
+    end
+    
     times(end + 1) = t;
     
-    if (t < toc && (lastPlotAt - toc) < 0.5) % Simulation still needs to progress)
+    t = t + dt;
+    
+    
+    if (t - lastPlotAt < 0.01) % Simulation still needs to progress)
         continue;
     end
-    
+    lastPlotAt = t;
     % positions have been updated. Draw Now;
     figure(fMain);
     clf; % clear existing
@@ -95,8 +127,9 @@ for t = 0:dt:30
     title(['t = ', num2str(t)]);
     axis equal
     
-    % plot data    
-    
+    % plot data   
+    %pause(0.001); 
+    %continue;
     figure(fTrq); % torques
     clf;
     for ii=1:length(spinners)

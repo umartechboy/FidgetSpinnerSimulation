@@ -11,7 +11,12 @@ function drawSpinner(spinner)
             col = 'r';
         end
         viscircles(c, spinner.Magnets(ii).R, 'EdgeColor', col);
-        plot([c(1) , spinner.Position(1)], [c(2) , spinner.Position(2)], 'black', 'LineWidth', 2);
+        if (spinner.IsPowered)
+            col = 'red';
+        else
+            col = 'black';
+        end
+        plot([c(1) , spinner.Position(1)], [c(2) , spinner.Position(2)], col, 'LineWidth', 2);
     end
     grid on;
 end

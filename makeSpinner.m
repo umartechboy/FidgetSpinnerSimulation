@@ -1,5 +1,5 @@
 function spinner = makeSpinner(nMagnets, r, position, polarity)
-if(nargin == 3)
+if(nargin <= 3)
     polarity = true;
 end
 while(length(polarity) < nMagnets)
@@ -12,18 +12,20 @@ end
 magnets = makeMagnet(true); % will be replaced. Its only here to make struct
 spinner.N = nMagnets;
 thD = 2 * pi / spinner.N;
-spinner.I = 2; % random value for the spinner frame
+spinner.I = 0.00002; % random value for the spinner frame
 
 for ii = 0:(spinner.N - 1)
     thI = thD * ii;
     magnets(ii + 1) = makeMagnet(polarity(ii + 1)); 
     magnets(ii + 1).Position = r * [cos(thI); sin(thI)];
-    spinner.I = magnets(ii + 1).Mass * r^2; % parallel axis theorem
+    spinner.I = spinner.I + magnets(ii + 1).Mass * r^2; % parallel axis theorem
 end
-spinner.B = 200; % random Friction
+spinner.B = 0.002; % random Friction
 spinner.Magnets = magnets;
 spinner.Position = position; % 3D position
 spinner.R = r; % Radius. Also used to initialize magnets
+spinner.tau = 0; % torque, for reference only
+spinner.a = 0; % rotational acceleration, for reference only
 spinner.w = 0; % rotational velocity
 spinner.th = 0; % rotational position
 spinner.IsPowered = false;
