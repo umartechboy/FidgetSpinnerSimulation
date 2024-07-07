@@ -2,11 +2,12 @@
 @using SkiaSharp
 @using SkiaSharp.Views
 
-<div style="width: 100%; height: @Height;"
+<div style="width: 100%; height: @Height; cursor: @Cursor"
      @onmousemove:preventDefault="true"
      @onmousedown:preventDefault="true"
      @onmouseup:preventDefault="true"
-     @onclick:preventDefault="true">
+     @onclick:preventDefault="true"
+>
     <SkiaSharp.Views.Blazor.SKGLView @ref="skView"
                                      @onmousemove="mouseMove"
                                      @onmousedown="mouseDown"
@@ -20,7 +21,7 @@
     public string Height { get; set; } = "400px";
     XYPlot Plot = new XYPlot("text plot");
     SkiaSharp.Views.Blazor.SKGLView skView;
-
+    string Cursor = "default";
     protected override void OnAfterRender(bool firstRender)
     {
         if (!firstRender)
@@ -41,6 +42,7 @@
     public void mouseMove(MouseEventArgs e)
     {
         Plot.ProcessMouseMove(new SKPoint((float)e.OffsetX, (float)e.OffsetY));
+        Cursor = Plot.CursorStyle;
     }
     public void mouseDown(MouseEventArgs e)
     {

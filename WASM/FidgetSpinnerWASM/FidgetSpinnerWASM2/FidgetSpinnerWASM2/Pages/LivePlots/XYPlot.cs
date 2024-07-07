@@ -33,10 +33,10 @@ namespace FidgetSpinnerWASM2.Pages.LivePlots
         }
         int SpaceDivision_XAxisHeight = 30;
         int SpaceDivision_CommonAxisButtonHeight = 15;
-        int SpaceDivision_CommonYAxisWidth = 120;
+        int SpaceDivision_CommonYAxisWidth = 60;
         public int SpaceDivision_XAxisButtonSpace = 20;
         public int SpaceDivision_YAxisButtonSpace = 40;
-        public int SpaceDivision_LegendSpace = 200;
+        public int SpaceDivision_LegendSpace = 1;
 
         bool _ntrd = true;
         public bool NeedsToRedraw
@@ -499,7 +499,7 @@ namespace FidgetSpinnerWASM2.Pages.LivePlots
                 {
                     if (axis.CheckOverShootImageHover(eLoc))
                     {
-                        //CursorStyle = "grab";
+                        CursorStyle = "grab";
                         axis.TentativeOp = axis.DefaultResetOp;
                         NeedsToRedraw = true;
                         definedMoveOp = axis.TentativeOp;
@@ -507,7 +507,7 @@ namespace FidgetSpinnerWASM2.Pages.LivePlots
                     }
                     else if (axis.AxisBounds.Contains(eLoc))
                     {
-                        //Cursor = axis.DefaultScaleOp == MoveOp.xZoom ? CursorStyle.SizeWE : Cursors.SizeNS;
+                        CursorStyle = axis.DefaultScaleOp == MoveOp.xZoom ? "col-resize" : "row-resize";
                         axis.TentativeOp = MoveOp.Zoom;
                         axis.MarkerCursorG = eLoc;
                         NeedsToRedraw = true;
@@ -528,7 +528,7 @@ namespace FidgetSpinnerWASM2.Pages.LivePlots
                 }
                 else
                 {
-                    //Cursor = Cursors.Default;
+                    CursorStyle = "default";
 
                     foreach (var axis in XYAxis)
                     {
@@ -587,10 +587,10 @@ namespace FidgetSpinnerWASM2.Pages.LivePlots
                 {
                     axis.CurrentMoveOp = axis.TentativeOp;
 
-                    //if (axis.CurrentMoveOp == MoveOp.xyPan)
-                    //    Cursor = Cursors.NoMove2D;
-                    //else if (axis.CurrentMoveOp == MoveOp.Zoom)
-                    //    Cursor = axis.DefaultScaleOp == MoveOp.xZoom ? Cursors.NoMoveHoriz : Cursors.NoMoveVert;
+                    if (axis.CurrentMoveOp == MoveOp.xyPan)
+                        CursorStyle = "move";
+                    else if (axis.CurrentMoveOp == MoveOp.Zoom)
+                        CursorStyle = axis.DefaultScaleOp == MoveOp.xZoom ? "e-resize" : "s-resize";
                     axis.RegisterMouseDown(eLoc);
                     if (axis.CurrentMoveOp == MoveOp.resetScale)
                     {
