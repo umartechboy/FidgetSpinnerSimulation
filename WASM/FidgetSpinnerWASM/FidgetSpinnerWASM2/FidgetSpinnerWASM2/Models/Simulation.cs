@@ -6,6 +6,7 @@ using System.ComponentModel;
 using static MudBlazor.Defaults.Classes;
 using System;
 using System.Text;
+using static FidgetSpinnerWASM2.Pages.Plotter;
 
 namespace FidgetSpinnerWASM2.Models
 {
@@ -16,13 +17,8 @@ namespace FidgetSpinnerWASM2.Models
         public event EventHandler OnRequestToUpdateState;
         public double t = 0;
         public double dt = 0.0001;
-        List<double> times = new List<double>();
-        List<double> torques = new List<double>();
-        List<double> netTorques = new List<double>();
-        List<double> frictions = new List<double>();
-        List<double> accelerations = new List<double>();
-        List<double> velocities = new List<double>();
-        List<double> displacements = new List<double>();
+        public List<double> times = new List<double>();
+        public List<SpinnerSimResult> results = new ();
         public bool canStep { get; set; } = false;
         public void Reset()
         {
@@ -57,8 +53,8 @@ namespace FidgetSpinnerWASM2.Models
                     // w is fixed
                     tauF = 0;
                     alpha = 0;
-                    torques.Add(0);
-                    netTorques.Add(0);
+                    spinner1.SimResult.torques.Add(0);
+                    spinner1.SimResult.netTorques.Add(0);
                 }
                 else
                 {
@@ -70,20 +66,20 @@ namespace FidgetSpinnerWASM2.Models
             spinner1.a = alpha;
                     spinner1.tau = tauOnii.Z + tauF;
                     spinner1.w = spinner1.w + alpha * dt;
-                    torques.Add(tauOnii.Z);
-                    netTorques.Add(tauOnii.Z + tauF);
+                    spinner1.SimResult.torques.Add(tauOnii.Z);
+                    spinner1.SimResult.netTorques.Add(tauOnii.Z + tauF);
                 }
 
-                frictions.Add(tauF);
-                accelerations.Add(alpha);
-                velocities.Add(spinner1.w);
+                spinner1.SimResult.frictions.Add(tauF);
+                spinner1.SimResult.accelerations.Add(alpha);
+                spinner1.SimResult.velocities.Add(spinner1.w);
             }
             foreach (var spinner in spinners)
             {
                 // we have the velocities now, calculate final positions
 
                 spinner.th = spinner.th + spinner.w * dt;
-                displacements.Add(spinner.th);
+                spinner.SimResult.displacements.Add(spinner.th);
                 if (spinner.w * dt > maxdth)
                     maxdth = spinner.w * dt;
             }
@@ -155,5 +151,14 @@ namespace FidgetSpinnerWASM2.Models
             else
                 return -B_r;
         }
+    }
+    public class SpinnerSimResult
+    {
+        public List<double> torques = new List<double>();
+        public List<double> netTorques = new List<double>();
+        public List<double> frictions = new List<double>();
+        public List<double> accelerations = new List<double>();
+        public List<double> velocities = new List<double>();
+        public List<double> displacements = new List<double>();
     }
 }

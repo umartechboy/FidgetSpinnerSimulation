@@ -1,0 +1,73 @@
+﻿@using ApexCharts
+
+<ApexChart @ref="chart" TItem="XYPoint"
+           Title="@plotTitle">
+
+    @foreach(var Data in Datas)
+    {
+    <ApexPointSeries TItem="XYPoint"
+                     Items="Data.Data"
+                     Name="@Data.Legend"
+                     SeriesType="SeriesType.Line"
+                     XValue="e => e.X"
+                     YValue="e => e.Y" />
+    }
+</ApexChart>
+
+@code {
+    string plotTitle { get; set; }
+    ApexChart<XYPoint> chart;
+    private List<DataSeries> Datas { get; set; } = new();
+    protected override void OnInitialized()
+    {
+    }
+    bool isHeld = false;
+    public void holdOn()
+    {
+        isHeld = true;
+    }
+    public void holdOff()
+    {
+        isHeld = false;
+    }
+    public void title(string str)
+    {
+        plotTitle = str;
+        StateHasChanged();
+        
+    }
+    public void clear()
+    {
+        Datas.Clear();
+        StateHasChanged();
+    }
+    public void plot(List<XYPoint> xy, string legend)
+    {
+        if (!isHeld)
+            Datas.Clear();
+        Datas.Add(new DataSeries
+            {
+                Legend = legend,
+                Data = xy
+            });
+        chart.UpdateSeriesAsync();
+        StateHasChanged();
+    }
+    public void plot(float[] x, float[] y, string legend)
+    {
+        var points = new List<XYPoint>();
+        for (int i =0; i < x.Length; i++)
+            points.Add(new XYPoint { X = (decimal)x[i], Y = (decimal)y[i] });
+        plot(points, legend);
+    }
+    public class DataSeries
+    {
+        public string Legend { get; set; } = "";
+        public List<XYPoint> Data { get; set; } = new();
+    }
+    public class XYPoint
+    {
+        public decimal X { get; set; }
+        public decimal Y { get; set; }
+    }
+}

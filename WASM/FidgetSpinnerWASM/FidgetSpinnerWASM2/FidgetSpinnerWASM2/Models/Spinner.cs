@@ -10,6 +10,7 @@ namespace FidgetSpinnerWASM2.Models
 {
     public class Spinner
     {
+        public SpinnerSimResult SimResult { get; set; } = new();
         public List<Magnet> Magnets { get; set; } = new List<Magnet>();
         public event EventHandler OnRequestToDraw;
         public Spinner() { }
@@ -62,6 +63,7 @@ namespace FidgetSpinnerWASM2.Models
             var thD = 2 * Math.PI / Magnets.Count;
             if (showLabels)
             {
+                
                 canvas.Save();
                 canvas.Scale(1, -1);
                 canvas.DrawText(ID.ToString(), Position.X, -Position.Y, new SKPaint(new SKFont()
@@ -95,9 +97,10 @@ namespace FidgetSpinnerWASM2.Models
                 canvas.DrawCircle(cx, cy, Magnets[ii].R, paint);
                 if (showLabels)
                 {
+                    // text will be inverted. transform the canvas
                     canvas.Save();
                     canvas.Scale(1, -1);
-                    canvas.DrawText((ii + 1).ToString(), cx, -cy, new SKPaint(new SKFont()
+                    canvas.DrawText((ii + 1).ToString(), cx, -cy - Magnets[ii].R, new SKPaint(new SKFont()
                     {
                         Size = 0.02F
                     })

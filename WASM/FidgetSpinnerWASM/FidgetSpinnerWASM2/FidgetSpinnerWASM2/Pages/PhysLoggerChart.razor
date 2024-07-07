@@ -1,0 +1,22 @@
+﻿@using SkiaSharp
+@using SkiaSharp.Views
+
+<div style="width: 100%; height: @Height;"
+     @onmousemove="mouseMove">
+    <SkiaSharp.Views.Blazor.SKGLView @ref="skView"
+                                     OnPaintSurface="OnPaint"
+                                     IgnorePixelScaling="true" style="width: 100%; height: 100%;"></SkiaSharp.Views.Blazor.SKGLView>
+</div>  
+@code {
+    [Parameter]
+    public string Height { get; set; } = "400px";
+
+    SkiaSharp.Views.Blazor.SKGLView skView;
+
+    public void OnPaint(SkiaSharp.Views.Blazor.SKPaintGLSurfaceEventArgs e)
+    { }
+    public void mouseMove(MouseEventArgs e)
+    {
+        
+    }
+}
