@@ -6,8 +6,6 @@ using System.ComponentModel;
 using static MudBlazor.Defaults.Classes;
 using System;
 using System.Text;
-using static FidgetSpinnerWASM2.Pages.Plotter;
-
 namespace FidgetSpinnerWASM2.Models
 {
     public class Simulation

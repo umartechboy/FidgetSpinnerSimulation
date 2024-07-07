@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using FidgetSpinnerWASM2.Models
+@using FidgetSpinnerWASM2.Pages.LivePlots
 @using SkiaSharp
 @using SkiaSharp.Views
 @using System.Numerics
@@ -97,14 +98,13 @@
                     </MudNavMenu>
                 </MudPaper>
             </MudItem>
-            <MudItem md="12"Class="px-4 py-5">
-                <MudPaper Elevation="5">
+            <MudItem md="12">
+                <MudPaper Elevation="5" Class="px-4 py-5">
                     <MudSelect T="AnalysisItem" Label="Plot" Variant="Variant.Filled" AnchorOrigin="Origin.BottomCenter" SelectedValuesChanged="(item) => updatePlot(item)">
                         <MudSelectItem Value="@(new AnalysisItem("Acceleration",sim.times, sim.spinners.Select(sp => sp.SimResult.accelerations).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
                         <MudSelectItem Value="@(new AnalysisItem("Displacement",sim.times, sim.spinners.Select(sp => sp.SimResult.displacements).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
                     </MudSelect>
                 </MudPaper>
-                @* <Plotter @ref="plotter"></Plotter> *@
                 <PhysLoggerChart @ref="plotter"></PhysLoggerChart>
             </MudItem>
         </MudGrid>
@@ -123,15 +123,15 @@
 
     void updatePlot(IEnumerable<Models.AnalysisItem> _item)
     {
-        // var item = _item.ToArray()[0];
-        // plotter.clear();
-        // plotter.holdOn();
-        // foreach(var series in item.data)
-        // {
-        //     var id = series.Key;
-        //     var data = series.Value;
-        //     plotter.plot(data.ToList(), id);
-        // }
+        var item = _item.ToArray()[0];
+        plotter.clear();
+        plotter.holdOn();
+        foreach(var series in item.data)
+        {
+            var id = series.Key;
+            var data = series.Value;
+            plotter.plot(data.ToList(), id);
+        }
         StateHasChanged();
     }
     void updateUI()
