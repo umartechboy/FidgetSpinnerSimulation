@@ -40,19 +40,19 @@
     }
     public void mouseMove(MouseEventArgs e)
     {
-        Plot.ProcessMouseMove(new SKPoint((float)e.ClientX, (float)e.ClientY));
+        Plot.ProcessMouseMove(new SKPoint((float)e.OffsetX, (float)e.OffsetY));
     }
     public void mouseDown(MouseEventArgs e)
     {
-        Plot.ProcessMouseDown(new SKPoint((float)e.ClientX, (float)e.ClientY));
+        Plot.ProcessMouseDown(new SKPoint((float)e.OffsetX, (float)e.OffsetY));
     }
     public void mouseUp(MouseEventArgs e)
     {
-        Plot.ProcessMouseUp(new SKPoint((float)e.ClientX, (float)e.ClientY));
+        Plot.ProcessMouseUp(new SKPoint((float)e.OffsetX, (float)e.OffsetY));
     }
     public void mouseClick(MouseEventArgs e)
     {
-        Plot.ProcessMouseClick(new SKPoint((float)e.ClientX, (float)e.ClientY));
+        Plot.ProcessMouseClick(new SKPoint((float)e.OffsetX, (float)e.OffsetY));
     }
     public void Invalidate()
     {

@@ -61,7 +61,7 @@ namespace FidgetSpinnerWASM2.Pages.LivePlots
             }
             if (Bounds.Contains(position))
             {
-                OnMouseMove?.Invoke(position);
+                OnClick?.Invoke(position);
                 return true;
             }
             return false;
@@ -76,7 +76,7 @@ namespace FidgetSpinnerWASM2.Pages.LivePlots
             }
             if (Bounds.Contains(position))
             {
-                OnMouseMove?.Invoke(position);
+                OnMouseDown?.Invoke(position);
                 return true;
             }
             return false;
@@ -93,7 +93,7 @@ namespace FidgetSpinnerWASM2.Pages.LivePlots
             }
             if (Bounds.Contains(position))
             {
-                OnMouseMove?.Invoke(position);
+                OnMouseUp?.Invoke(position);
                 return true;
             }
             return false;
