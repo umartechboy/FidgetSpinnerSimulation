@@ -1,22 +1,61 @@
-﻿@using SkiaSharp
+﻿@using FidgetSpinnerWASM2.Pages.LivePlots
+@using SkiaSharp
 @using SkiaSharp.Views
 
 <div style="width: 100%; height: @Height;"
-     @onmousemove="mouseMove">
+     @onmousemove:preventDefault="true"
+     @onmousedown:preventDefault="true"
+     @onmouseup:preventDefault="true"
+     @onclick:preventDefault="true">
     <SkiaSharp.Views.Blazor.SKGLView @ref="skView"
+                                     @onmousemove="mouseMove"
+                                     @onmousedown="mouseDown"
+                                     @onmouseup="mouseUp"
+                                     @onclick="mouseClick"
                                      OnPaintSurface="OnPaint"
                                      IgnorePixelScaling="true" style="width: 100%; height: 100%;"></SkiaSharp.Views.Blazor.SKGLView>
 </div>  
 @code {
     [Parameter]
     public string Height { get; set; } = "400px";
-
+    XYPlot Plot = new XYPlot("text plot");
     SkiaSharp.Views.Blazor.SKGLView skView;
 
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+    }
+    bool firstPaint = true;
     public void OnPaint(SkiaSharp.Views.Blazor.SKPaintGLSurfaceEventArgs e)
-    { }
+    {
+        if (firstPaint)
+        {
+            Plot.Width = e.Info.Width;
+            Plot.Height = e.Info.Height;
+            Plot.ResetAxisBounds();
+            firstPaint = false;
+        }
+        Plot.OnPaint(e.Surface.Canvas, new System.Text.StringBuilder());
+    }
     public void mouseMove(MouseEventArgs e)
     {
-        
+        Plot.ProcessMouseMove(new SKPoint((float)e.ClientX, (float)e.ClientY));
+    }
+    public void mouseDown(MouseEventArgs e)
+    {
+        Plot.ProcessMouseDown(new SKPoint((float)e.ClientX, (float)e.ClientY));
+    }
+    public void mouseUp(MouseEventArgs e)
+    {
+        Plot.ProcessMouseUp(new SKPoint((float)e.ClientX, (float)e.ClientY));
+    }
+    public void mouseClick(MouseEventArgs e)
+    {
+        Plot.ProcessMouseClick(new SKPoint((float)e.ClientX, (float)e.ClientY));
+    }
+    public void Invalidate()
+    {
+        skView.Invalidate();
     }
 }

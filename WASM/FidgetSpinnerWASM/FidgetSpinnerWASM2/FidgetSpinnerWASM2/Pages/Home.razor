@@ -104,7 +104,8 @@
                         <MudSelectItem Value="@(new AnalysisItem("Displacement",sim.times, sim.spinners.Select(sp => sp.SimResult.displacements).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
                     </MudSelect>
                 </MudPaper>
-                <Plotter @ref="plotter"></Plotter>
+                @* <Plotter @ref="plotter"></Plotter> *@
+                <PhysLoggerChart @ref="plotter"></PhysLoggerChart>
             </MudItem>
         </MudGrid>
     </MudItem>
@@ -117,24 +118,26 @@
     SkiaSharp.Views.Blazor.SKGLView skView;
     bool realTimeSim = false;
     bool showLabels = false;
-    Plotter plotter; 
+    //Plotter plotter; 
+    PhysLoggerChart plotter;
 
     void updatePlot(IEnumerable<Models.AnalysisItem> _item)
     {
-        var item = _item.ToArray()[0];
-        plotter.clear();
-        plotter.holdOn();
-        foreach(var series in item.data)
-        {
-            var id = series.Key;
-            var data = series.Value;
-            plotter.plot(data.ToList(), id);
-        }
+        // var item = _item.ToArray()[0];
+        // plotter.clear();
+        // plotter.holdOn();
+        // foreach(var series in item.data)
+        // {
+        //     var id = series.Key;
+        //     var data = series.Value;
+        //     plotter.plot(data.ToList(), id);
+        // }
         StateHasChanged();
     }
     void updateUI()
     {
         StateHasChanged();
+        plotter.Invalidate();
         // update plot too
 
     }
@@ -153,7 +156,7 @@
             foreach(var spinner in spinners)
                 spinner.OnRequestToDraw += (s, e) => skView.Invalidate();
             new Task(async () => { await Task.Delay(2000); updateUI(); }).Start();
-            sim.OnRequestToDraw += (s, e) => skView.Invalidate();
+            sim.OnRequestToDraw += (s, e) => { skView.Invalidate(); plotter.Invalidate(); };
             sim.OnRequestToUpdateState += (s, e) => updateUI();
 
             new Task(async () =>
@@ -162,6 +165,7 @@
                 while (true)
                 {
                     skView.Invalidate();
+                    plotter.Invalidate();
                     await Task.Delay(20);
                 }
             }).Start();
@@ -197,7 +201,10 @@
                 break;
         }
         var s = new Models.Spinner(4, 40 / 1000, new Vector3(x, y, 0), new bool[] { true, false, true, false });
-        s.OnRequestToDraw += (s, e) => skView.Invalidate();
+        s.OnRequestToDraw += (s, e) =>
+        {
+            skView.Invalidate(); plotter.Invalidate();
+        };
 
         spinners.Add(s);
         updateUI();
@@ -233,5 +240,6 @@
 
         spinners.ForEach((s) => s.Draw(canvas, showLabels));
         skView.Invalidate();
+        plotter.Invalidate();
     }
 }
