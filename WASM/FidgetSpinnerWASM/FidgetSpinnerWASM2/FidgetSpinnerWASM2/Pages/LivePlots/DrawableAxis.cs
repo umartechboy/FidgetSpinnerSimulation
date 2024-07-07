@@ -184,7 +184,7 @@ namespace FidgetSpinnerWASM2.Pages.LivePlots
                 currentMax += inc;
             }
             float fac = 0.9F;
-            float cover = 0.8F;
+            float cover = 0.9F;
             float idealXPPU = maxWidthG / (float)(currentMax - currentMin) * cover;
             if (idealXPPU > Math.Pow(10, PhysLoggerSharedResources.SignificantFiguresAfterDecimal) * 5000)
                 idealXPPU = (float)Math.Pow(10, PhysLoggerSharedResources.SignificantFiguresAfterDecimal) * 5000;

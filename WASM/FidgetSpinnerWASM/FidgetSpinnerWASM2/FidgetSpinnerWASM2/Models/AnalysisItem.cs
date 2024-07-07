@@ -5,17 +5,15 @@ namespace FidgetSpinnerWASM2.Models
     public class AnalysisItem
     {
         public readonly string itemTitle = "";
-        public Dictionary<string, SKPoint[]> data = new ();
+        public string[] ids;
+        public List<double> X = new();
+        public List<double>[] Y;
         public AnalysisItem(string name, List<double> times, List<double>[] dataPoints, string[] names)
         {
             itemTitle = name;
-            for (int i = 0; i < dataPoints.Length; i++)
-            {
-                var ps = new List<SKPoint>();
-                for (int j = 0; j < times.Count; j++)
-                    ps.Add(new SKPoint { X = (float)times[j], Y = (float)dataPoints[i][j] });
-                data.Add(names[i], ps.ToArray());
-            }
+            ids = names;
+            X = times;
+            Y = dataPoints;
         }
 
         // Note: this is important so the MudSelect can compare pizzas

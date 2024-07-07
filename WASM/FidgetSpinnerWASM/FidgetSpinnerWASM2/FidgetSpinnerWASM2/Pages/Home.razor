@@ -100,12 +100,19 @@
             </MudItem>
             <MudItem md="12">
                 <MudPaper Elevation="5" Class="px-4 py-5">
-                    <MudSelect T="AnalysisItem" Label="Plot" Variant="Variant.Filled" AnchorOrigin="Origin.BottomCenter" SelectedValuesChanged="(item) => updatePlot(item)">
-                        <MudSelectItem Value="@(new AnalysisItem("Acceleration",sim.times, sim.spinners.Select(sp => sp.SimResult.accelerations).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
-                        <MudSelectItem Value="@(new AnalysisItem("Displacement",sim.times, sim.spinners.Select(sp => sp.SimResult.displacements).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
-                    </MudSelect>
+                    <MudGrid>
+                        <MudItem md="8">
+                            <MudSelect T="AnalysisItem" Label="Plot" Variant="Variant.Filled" AnchorOrigin="Origin.BottomCenter" SelectedValuesChanged="(item) => updatePlot(item)">
+                                <MudSelectItem Value="@(new AnalysisItem("Acceleration",sim.times, sim.spinners.Select(sp => sp.SimResult.accelerations).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
+                                <MudSelectItem Value="@(new AnalysisItem("Displacement",sim.times, sim.spinners.Select(sp => sp.SimResult.displacements).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem md="4">
+                            <MudButton EndIcon="@Icons.Material.Filled.Refresh" OnClick="updateCurrentPlot"></MudButton>
+                        </MudItem>
+                    </MudGrid>
+                    <PhysLoggerChart @ref="plotter" Title="@(currentItem==null?"No variable selected":currentItem.itemTitle)"></PhysLoggerChart>
                 </MudPaper>
-                <PhysLoggerChart @ref="plotter"></PhysLoggerChart>
             </MudItem>
         </MudGrid>
     </MudItem>
@@ -121,18 +128,25 @@
     //Plotter plotter; 
     PhysLoggerChart plotter;
 
-    void updatePlot(IEnumerable<Models.AnalysisItem> _item)
+    AnalysisItem currentItem;
+    void updateCurrentPlot()
     {
-        var item = _item.ToArray()[0];
         plotter.clear();
         plotter.holdOn();
-        foreach(var series in item.data)
+        for (int i =0; i < currentItem.ids.Length; i++)
         {
-            var id = series.Key;
-            var data = series.Value;
-            plotter.plot(data.ToList(), id);
+            var id = currentItem.ids[i];
+            var x = currentItem.X;
+            var y = currentItem.Y[i];
+            plotter.plot(x.Select(_v => (float)_v).ToArray(), y.Select(_v => (float)_v).ToArray(), id);
         }
+        plotter.Title = currentItem.itemTitle;
         StateHasChanged();
+    }
+    void updatePlot(IEnumerable<Models.AnalysisItem> _item)
+    {
+        currentItem = _item.ToArray()[0];
+        updateCurrentPlot();
     }
     void updateUI()
     {
