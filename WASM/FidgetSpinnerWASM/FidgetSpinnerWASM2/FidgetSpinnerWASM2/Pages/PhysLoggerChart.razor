@@ -2,7 +2,6 @@
 @using SkiaSharp
 @using SkiaSharp.Views
 
-<MudText Typo="Typo.h5">@Title</MudText>
 <div style="width: 100%; height: @Height; cursor: @Cursor"
      @onmousemove:preventDefault="true"
      @onmousedown:preventDefault="true"
@@ -20,8 +19,6 @@
 @code {
     [Parameter]
     public string Height { get; set; } = "400px";
-    [Parameter]
-    public string Title { get; set; } = "PhysLogger Chart";
 
     XYPlot Plot = new XYPlot("text plot");
     SkiaSharp.Views.Blazor.SKGLView skView;
@@ -74,12 +71,6 @@
     public void holdOff()
     {
         isHeld = false;
-    }
-    public void title(string str)
-    {
-        Title = str;
-        StateHasChanged();
-
     }
     int colorInd = 0;
     public void clear()

@@ -5,17 +5,21 @@ using SkiaSharp;
 using System.Numerics;
 using static MudBlazor.Colors;
 using System.Threading.Tasks;
+using System.Runtime.Serialization;
 
 namespace FidgetSpinnerWASM2.Models
 {
+    [DataContract]
     public class Spinner
     {
         public SpinnerSimResult SimResult { get; set; } = new();
+        [DataMember]
         public List<Magnet> Magnets { get; set; } = new List<Magnet>();
         public event EventHandler OnRequestToDraw;
         public Spinner() { }
         public int N { get => Magnets.Count; }
         static int spinnerID = 1;
+        [DataMember]
         public int ID { get; private set; }
         public Spinner(int nMagnets, float r, Vector3 position, params bool [] polarity)
         {
@@ -35,10 +39,12 @@ namespace FidgetSpinnerWASM2.Models
             
             Position = position;
         }
+        [DataMember]
         public double B { get; set; } = 0.002; // random Friction
         public float BNmms { get => (float)(B * 1000); set { B = value / 1000.0F; } }
+        [DataMember]
         public Vector3 Position { get; set; } // 3D position
-        
+        [DataMember]
         public float RPM { get => (float)(w / 2 / Math.PI * 60); set => w = value / 60.0F * 2 * Math.PI; }
        
         public float Xmm { get => Position.X * 1000; set { Position = new Vector3(value / 1000.0F, Position.Y, Position.Z); } }
@@ -46,12 +52,19 @@ namespace FidgetSpinnerWASM2.Models
         public float Rmm { 
             get => R * 1000; 
             set => R = value / 1000.0F; }
+        [DataMember]
         public float R { get; set; } = 40 / 1000.0F; // Radius.Also used to initialize magnets
+        [DataMember] 
         public double tau { get; set; } = 0; // torque, for reference only
+        [DataMember] 
         public double a { get; set; } = 0; // rotational acceleration, for reference only
+        [DataMember] 
         public double I { get; set; } = 0.00002;
+        [DataMember] 
         public double w { get; set; } = 0; // rotational velocity
+        [DataMember] 
         public double th { get; set; } = 0; // rotational position
+        [DataMember] 
         public bool IsPowered { get; set; } = false;
         public void AddMagnet(Magnet magnet)
         {

@@ -4,6 +4,9 @@
 @using SkiaSharp
 @using SkiaSharp.Views
 @using System.Numerics
+@using System.Runtime.Serialization.Json
+@using System.Text
+@inject IJSRuntime JSRuntime
 
 <MudGrid>
     <MudItem md="7">
@@ -25,7 +28,7 @@
                     <MudText>Time: @sim.t.ToString("F4")</MudText>
                     <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" OnClick="sim.Play"></MudIconButton>
                     <MudIconButton Icon="@Icons.Material.Filled.Pause" OnClick="sim.Pause"></MudIconButton>
-                    <MudIconButton Icon="@Icons.Material.Filled.Stop" OnClick="sim.Reset"></MudIconButton>
+                    
                     <MudCheckBox @bind-Value="realTimeSim" Label="Real time update"></MudCheckBox>
                     <MudCheckBox @bind-Value="showLabels" Label="Display Labels"></MudCheckBox>
                 </MudPaper>
@@ -33,7 +36,25 @@
             <MudItem md="12">
                 <MudPaper Elevation="5">
                     <MudNavMenu>
-                        <MudText Typo="Typo.h6" Class="px-4">Fidget Spinner Simulator</MudText>
+                        <MudGrid Class="px-4 my-2">
+                            <MudItem md="10">
+                                <MudText Typo="Typo.h6" Class="px-4">Bodies Config</MudText>
+                            </MudItem>
+                            <MudItem md="1">
+                                <MudIconButton Icon="@Icons.Material.Filled.Save" OnClick="SaveConfig"></MudIconButton>
+                            </MudItem>
+                            <MudItem md="1">
+                                <MudFileUpload T="IBrowserFile" Accept=".json" FilesChanged="UploadConfig">
+                                    <ActivatorContent>
+                                        <MudIconButton
+                                                   Color="Color.Primary"
+                                                   Icon="@Icons.Material.Filled.CloudUpload">
+                                        </MudIconButton>
+                                    </ActivatorContent>
+                                </MudFileUpload>
+                            </MudItem>
+                        </MudGrid>                        
+                        
                         @if (spinners.Count == 0)
                         {
                             <MudNavLink Disabled="true">No spinners added</MudNavLink>
@@ -45,21 +66,22 @@
                                     <MudButton Class="mx-6" StartIcon="@Icons.Material.Filled.Remove" Color="MudBlazor.Color.Error" OnClick="() => {spinners.Remove(spinner); StateHasChanged();}">Remove</MudButton>
                                 </MudItem>
                                 <MudItem Style="padding-left: 48px">
-                                    <MudSlider T="float" Value="@spinner.Rmm" ValueChanged="(v) => spinner.Rmm = v" Min="1" Max="500">Radius (mm) = @spinner.Rmm</MudSlider>
+                                    <MudSlider T="float" Value="@spinner.Rmm" ValueChanged="(v) => spinner.Rmm = v" Min="1" Max="500" Step="0.5F">Radius (mm) = @spinner.Rmm</MudSlider>
                                 </MudItem>
                                 <MudItem Style="padding-left: 48px">
-                                    <MudSlider T="float" Value="@spinner.Xmm" ValueChanged="(v) => spinner.Xmm = v" Min="-500" Max="500">Center X (mm) = @spinner.Xmm</MudSlider>
+                                    <MudSlider T="float" Value="@spinner.Xmm" ValueChanged="(v) => spinner.Xmm = v" Min="-500" Max="500" Step="0.5F">Center X (mm) = @spinner.Xmm</MudSlider>
                                 </MudItem>
                                 <MudItem Style="padding-left: 48px">
-                                    <MudSlider T="float" Value="@spinner.Ymm" ValueChanged="(v) => spinner.Ymm = v" Min="-500" Max="500">Center Y (mm) = @spinner.Ymm</MudSlider></MudItem>
+                                    <MudSlider T="float" Value="@spinner.Ymm" ValueChanged="(v) => spinner.Ymm = v" Min="-500" Max="500" Step="0.5F">Center Y (mm) = @spinner.Ymm</MudSlider>
+                                </MudItem>
                                 <MudItem Style="padding-left: 48px">
                                     <MudCheckBox T="bool" Value="@spinner.IsPowered" ValueChanged="(v) => spinner.IsPowered = v" Label="Constant Speed"></MudCheckBox>
                                 </MudItem>
                                 <MudItem Style="padding-left: 48px">
-                                    <MudSlider T="float" Value="@spinner.RPM" ValueChanged="(v) => spinner.RPM = v" Min="-1000" Max="1000">Fixed Speed (rpm) = @(spinner.RPM)</MudSlider>
+                                    <MudSlider T="float" Value="@spinner.RPM" ValueChanged="(v) => spinner.RPM = v" Min="-1000" Max="1000" Step="1.0F">Fixed Speed (rpm) = @(spinner.RPM)</MudSlider>
                                 </MudItem>
                                 <MudItem Style="padding-left: 48px">
-                                    <MudSlider T="float" Value="@spinner.BNmms" ValueChanged="(v) => spinner.BNmms = v" Min="0" Max="5">Friction (N.mm.s) = @spinner.BNmms</MudSlider>
+                                    <MudSlider T="float" Value="@spinner.BNmms" ValueChanged="(v) => spinner.BNmms = v" Min="0" Max="5" Step="0.001F">Friction (N.mm.s) = @spinner.BNmms</MudSlider>
                                 </MudItem>
                                 <MudNavLink>Magnets</MudNavLink>
 
@@ -111,7 +133,9 @@
                             <MudButton EndIcon="@Icons.Material.Filled.Refresh" FullWidth="true" Style="height: 100%" OnClick="updateCurrentPlot"></MudButton>
                         </MudItem>
                     </MudGrid>
-                    <PhysLoggerChart @ref="plotter" Title="@(currentItem==null?"No variable selected":currentItem.itemTitle)"></PhysLoggerChart>
+                    <MudItem Class="py-2">
+                        <PhysLoggerChart @ref="plotter"></PhysLoggerChart>
+                    </MudItem>
                 </MudPaper>
             </MudItem>
         </MudGrid>
@@ -128,10 +152,40 @@
     //Plotter plotter; 
     PhysLoggerChart plotter;
 
+    void SaveConfig()
+    {
+        var jsonSer = new DataContractJsonSerializer(typeof(List<Spinner>));
+        var stream = new MemoryStream();
+        jsonSer.WriteObject(stream, sim.spinners);
+        var data = new UTF8Encoding().GetString(stream.ToArray());
+        JSRuntime.InvokeVoidAsync("downloadString", "SimulationConfig.json", data);
+    }
+    async Task UploadConfig(IBrowserFile file)
+    {
+        var jsonSer = new DataContractJsonSerializer(typeof(List<Spinner>));
+        var str = await new StreamReader(file.OpenReadStream()).ReadToEndAsync();
+
+        var spinners = (List<Spinner>)jsonSer.ReadObject(new MemoryStream(UTF8Encoding.Default.GetBytes(str)));
+        if (spinners == null)
+            return;
+        sim.spinners = spinners;
+        foreach (var sp in spinners)
+            sp.SimResult = new SpinnerSimResult();
+        sim.t = 0;
+        sim.canStep = false;
+        currentItem = null;
+        updateCurrentPlot();
+        StateHasChanged();
+    }
     AnalysisItem currentItem;
     void updateCurrentPlot()
     {
         plotter.clear();
+        if (currentItem == null)
+        {
+            StateHasChanged();
+            return;
+        }
         plotter.holdOn();
         for (int i =0; i < currentItem.ids.Length; i++)
         {
@@ -140,7 +194,6 @@
             var y = currentItem.Y[i];
             plotter.plot(x.Select(_v => (float)_v).ToArray(), y.Select(_v => (float)_v).ToArray(), id);
         }
-        plotter.Title = currentItem.itemTitle;
         StateHasChanged();
     }
     void updatePlot(IEnumerable<Models.AnalysisItem> _item)
