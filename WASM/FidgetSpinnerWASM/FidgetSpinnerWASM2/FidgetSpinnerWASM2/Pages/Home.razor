@@ -108,7 +108,7 @@
                             </MudSelect>
                         </MudItem>
                         <MudItem md="4">
-                            <MudButton EndIcon="@Icons.Material.Filled.Refresh" OnClick="updateCurrentPlot"></MudButton>
+                            <MudButton EndIcon="@Icons.Material.Filled.Refresh" FullWidth="true" Style="height: 100%" OnClick="updateCurrentPlot"></MudButton>
                         </MudItem>
                     </MudGrid>
                     <PhysLoggerChart @ref="plotter" Title="@(currentItem==null?"No variable selected":currentItem.itemTitle)"></PhysLoggerChart>

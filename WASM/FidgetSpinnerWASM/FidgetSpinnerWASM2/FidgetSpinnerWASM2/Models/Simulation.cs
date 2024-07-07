@@ -33,44 +33,44 @@ namespace FidgetSpinnerWASM2.Models
         public void Step()
         {
             double maxdth = 0;
-            foreach (var spinner1 in spinners)
+            foreach (var spinner in spinners)
             {
-                Vector3 tauOnii = new Vector3();
-                foreach (var spinner2 in spinners)
-                {
-                    if (spinner1 == spinner2)
-                        continue;
-                    if (spinner1.IsPowered)
-                        continue;
-                    tauOnii = tauOnii + calculateTorque(spinner1, spinner2);
-                }
                 double alpha = 0;
                 double tauF = 0;
-                if (spinner1.IsPowered)
+                if (spinner.IsPowered)
                 {
                     // w is fixed
                     tauF = 0;
                     alpha = 0;
-                    spinner1.SimResult.torques.Add(0);
-                    spinner1.SimResult.netTorques.Add(0);
+                    spinner.SimResult.torques.Add(0);
+                    spinner.SimResult.netTorques.Add(0);
                 }
                 else
                 {
-            //calculate the torque due to friction
-            tauF = -spinner1.w * spinner1.B;
+                    Vector3 tauOnii = new Vector3();
+                    foreach (var actor in spinners)
+                    {
+                        if (spinner == actor)
+                            continue;
+                        if (spinner.IsPowered)
+                            continue;
+                        tauOnii += calculateTorque(spinner, actor);
+                    }
+                    //calculate the torque due to friction
+                    tauF = -spinner.w * spinner.B;
             // calculate angular velocities
-            alpha = (tauOnii.Z + tauF) / spinner1.I; // We only need the vertical component of rotation
+            alpha = (tauOnii.Z + tauF) / spinner.I; // We only need the vertical component of rotation
 
-            spinner1.a = alpha;
-                    spinner1.tau = tauOnii.Z + tauF;
-                    spinner1.w = spinner1.w + alpha * dt;
-                    spinner1.SimResult.torques.Add(tauOnii.Z);
-                    spinner1.SimResult.netTorques.Add(tauOnii.Z + tauF);
+            spinner.a = alpha;
+                    spinner.tau = tauOnii.Z + tauF;
+                    spinner.w = spinner.w + alpha * dt;
+                    spinner.SimResult.torques.Add(tauOnii.Z);
+                    spinner.SimResult.netTorques.Add(tauOnii.Z + tauF);
                 }
 
-                spinner1.SimResult.frictions.Add(tauF);
-                spinner1.SimResult.accelerations.Add(alpha);
-                spinner1.SimResult.velocities.Add(spinner1.w);
+                spinner.SimResult.frictions.Add(tauF);
+                spinner.SimResult.accelerations.Add(alpha);
+                spinner.SimResult.velocities.Add(spinner.w);
             }
             foreach (var spinner in spinners)
             {
@@ -90,7 +90,7 @@ namespace FidgetSpinnerWASM2.Models
             
             t += dt;
         }
-        // Calculates the torque on spinner 1 by spinner 1
+        // Calculates the torque on spinner 1 by spinner 2
         Vector3 calculateTorque(Spinner spinner1, Spinner spinner2)
         {
 
@@ -106,7 +106,7 @@ namespace FidgetSpinnerWASM2.Models
 
                     // for simplicity, lets extract the magnets
                     var magnet1 = spinner1.Magnets[is1];
-                    var magnet2 = spinner1.Magnets[is2];
+                    var magnet2 = spinner2.Magnets[is2];
 
 
                     // to calculate torque, we need the center of spinner and positions
@@ -131,10 +131,8 @@ namespace FidgetSpinnerWASM2.Models
                     var F_u = d / d_mag;
                     var F = F_mag * F_u;
 
-                    if (F_mag > 1000 || F_mag < -1000)
-                        ;
                     var tau = Vector3.Cross(r, F);
-                    totalTorque = Vector3.One * totalTorque + tau;
+                    totalTorque = totalTorque + tau;
                 }
             }
             return totalTorque;
