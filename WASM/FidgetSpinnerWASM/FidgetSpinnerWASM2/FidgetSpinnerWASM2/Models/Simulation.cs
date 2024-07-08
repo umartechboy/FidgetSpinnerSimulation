@@ -59,7 +59,7 @@ namespace FidgetSpinnerWASM2.Models
                     //calculate the torque due to friction
                     tauF = -spinner.w * spinner.B;
             // calculate angular velocities
-            alpha = (tauOnii.Z + tauF) / spinner.I; // We only need the vertical component of rotation
+            alpha = (tauOnii.Z + tauF) / spinner.TotalI(); // We only need the vertical component of rotation
 
             spinner.a = alpha;
                     spinner.tau = tauOnii.Z + tauF;
@@ -71,6 +71,7 @@ namespace FidgetSpinnerWASM2.Models
                 spinner.SimResult.frictions.Add(tauF);
                 spinner.SimResult.accelerations.Add(alpha);
                 spinner.SimResult.velocities.Add(spinner.w);
+                spinner.SimResult.kineticEnergy.Add(1 / 2 * spinner.TotalI() * spinner.w * spinner.w);
             }
             foreach (var spinner in spinners)
             {
@@ -156,5 +157,12 @@ namespace FidgetSpinnerWASM2.Models
         public List<double> accelerations = new List<double>();
         public List<double> velocities = new List<double>();
         public List<double> displacements = new List<double>();
+        public List<double> kineticEnergy = new List<double>();
+    }
+    public enum ForceCalculation
+    {
+        Characteristics,
+        SingleConstant,
+        ExperimentalData
     }
 }

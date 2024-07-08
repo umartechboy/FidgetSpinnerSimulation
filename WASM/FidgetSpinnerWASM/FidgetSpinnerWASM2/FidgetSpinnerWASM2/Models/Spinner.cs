@@ -71,6 +71,15 @@ namespace FidgetSpinnerWASM2.Models
             this.Magnets.Add(magnet);
             magnet.OnRequestToDraw += (s, e) => OnRequestToDraw?.Invoke(s, e);
         }
+        public void RemoveMagnet(Magnet magnet)
+        {
+            this.Magnets.Remove(magnet);
+            magnet.OnRequestToDraw += (s, e) => OnRequestToDraw?.Invoke(s, e);
+        }
+        public float TotalI()
+        {
+            return (float)(I + Magnets.Sum(m => 0.5F * m.Mass * R * R));
+        }
         public void Draw(SKCanvas canvas, bool showLabels)
         {
             var thD = 2 * Math.PI / Magnets.Count;

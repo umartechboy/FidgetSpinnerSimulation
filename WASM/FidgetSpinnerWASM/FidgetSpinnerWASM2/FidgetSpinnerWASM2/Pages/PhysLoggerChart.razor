@@ -20,7 +20,7 @@
     [Parameter]
     public string Height { get; set; } = "400px";
 
-    XYPlot Plot = new XYPlot("text plot");
+    public XYPlot Plot = new XYPlot("text plot");
     SkiaSharp.Views.Blazor.SKGLView skView;
     string Cursor = "default";
     protected override void OnAfterRender(bool firstRender)
@@ -89,7 +89,9 @@
         Plot.XSeries.Data.Clear();
         Plot.XSeries.Data.AddRange(xy.Select(xy => (float)xy.X));
         Plot.AddYSource(new LoggerTerminalQuantity());
+
         Plot.YAxis.DataSeries.Last().Data.AddRange(xy.Select(xy => (float)xy.Y));
+        Plot.YAxis.DataSeries.Last().BindingQuantity.Title = legend;
         var cs = GraphicsUtils.CommonColors();
         Plot.YAxis.DataSeries.Last().BindingQuantity.Color = cs[colorInd % cs.Length];
         colorInd++;

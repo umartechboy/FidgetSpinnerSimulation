@@ -1,6 +1,7 @@
 ﻿using SkiaSharp;
 using System.Text;
 using static FidgetSpinnerWASM2.Pages.LivePlots.UnitCollection;
+using static MudBlazor.CategoryTypes;
 
 namespace FidgetSpinnerWASM2.Pages.LivePlots
 {
@@ -283,63 +284,53 @@ namespace FidgetSpinnerWASM2.Pages.LivePlots
             }
         }
 
-        //public void SaveAgainst(string root, params DataSeries[] ySeriesList)
-        //{
-        //    if (!themedResources.IsValidDataDir(root))
-        //        return;
-        //    if (ySeriesList == null)
-        //        return;
-        //    if (ySeriesList.Length == 0)
-        //        return;
-        //    int xo = 0;
-        //    float xVAdjust = 0;
-        //    if (this.AxisAssociation.UnitOptions.Type == UnitTypesEnum.Time)
-        //    {
-        //        xo = (int)(ySeriesList.ToList().Min(vy => vy.IDOffset) - this.IDOffset);
-        //        xVAdjust = this[xo];
-        //    }
-        //    var fileSeed = this.BindingQuantity.Title.ActiveString + "-" +
-        //                string.Join(";", ySeriesList.Select(ys =>
-        //                MultilingualText.Parse(themedResources, ys.BindingQuantity.Title).ActiveString));
+        public string SaveAgainst(params DataSeries[] ySeriesList)
+        {
+            if (ySeriesList == null)
+                return null;
+            if (ySeriesList.Length == 0)
+                return null;
+            MemoryStream fs = new MemoryStream();
+            int xo = 0;
+            float xVAdjust = 0;
+            if (this.AxisAssociation.UnitOptions.Type == UnitTypesEnum.Time)
+            {
+                xo = (int)(ySeriesList.ToList().Min(vy => vy.IDOffset) - this.IDOffset);
+                xVAdjust = this[xo];
+            }
+            var fileSeed = this.BindingQuantity.Title + "-" +
+                        string.Join(";", ySeriesList.Select(ys =>
+                        ys.BindingQuantity.Title));
 
-        //    themedResources.GetAutoFileName(root, fileSeed, ".csv",
-        //        (completeFileName) =>
-        //        {
-        //            var fs = System.IO.File.OpenWrite(completeFileName);
-        //            StreamWriter sb = new StreamWriter(fs);
-        //            var str = "Sr. No.," +
-        //                MultilingualText.Parse(themedResources, this.BindingQuantity.Title).ActiveString.Replace(",", "_") + "_" + this.BindingQuantity.Unit.Selected.Symbol + "," +
-        //                string.Join(",", ySeriesList.Select(ys =>
-        //                MultilingualText.Parse(themedResources, ys.BindingQuantity.Title).ActiveString.Replace(",", "_") + "_" + ys.BindingQuantity.Unit.Selected.Symbol));
-        //            sb.WriteLine(str);
-        //            int crsr = 1;
-        //            for (int i = xo; i < Data.Count; i++)
-        //            {
-        //                sb.Write(crsr + ", "); crsr++;
-        //                int xi = i;
-        //                string vx = "";
-        //                if (xi >= 0)
-        //                    vx = SharedResources.FormatNumber((this[xi] - xVAdjust), themedResources.SignificantFiguresAfterDecimalForFiles, themedResources.NumberFormatForFiles);
-        //                sb.Write(vx + ", ");
-        //                for (int y = 0; y < ySeriesList.Length; y++)
-        //                {
-        //                    var xSeries = this;
-        //                    var ySeries = ySeriesList[y];
-        //                    int yi = xi + (int)((int)this.IDOffset - (int)ySeries.IDOffset);
-        //                    string vy = "";
-        //                    if (yi >= 0 && yi < ySeries.Count)
-        //                        vy = SharedResources.FormatNumber(ySeries[yi], themedResources.SignificantFiguresAfterDecimalForFiles, themedResources.NumberFormatForFiles);
-        //                    sb.Write(vy + ((y + 1 < ySeriesList.Length) ? ", " : ""));
-        //                }
-        //                sb.WriteLine();
-        //            }
-        //            sb.Flush();
-        //            fs.Flush();
-        //            fs.Close();
-        //            DXMessageBox.Build(themedResources, DXMessageBox.Preset.DataSaved, completeFileName)
-        //            .ShowNotification();
-        //        });
-        //}
+            StreamWriter sb = new StreamWriter(fs);
+            var str = "Sr. No.," +
+                this.BindingQuantity.Title.Replace(",", "_") + "_" + this.BindingQuantity.Unit.Selected.Symbol + "," +
+                string.Join(",", ySeriesList.Select(ys =>
+                ys.BindingQuantity.Title.Replace(",", "_") + "_" + ys.BindingQuantity.Unit.Selected.Symbol));
+            sb.WriteLine(str);
+            int crsr = 1;
+            for (int i = xo; i < Data.Count; i++)
+            {
+                sb.Write(crsr + ", "); crsr++;
+                int xi = i;
+                string vx = "";
+                if (xi >= 0)
+                    vx = PhysLoggerSharedResources.FormatNumber((this[xi] - xVAdjust), PhysLoggerSharedResources.SignificantFiguresAfterDecimalForFiles, PhysLoggerSharedResources.NumberFormatForFiles);
+                sb.Write(vx + ", ");
+                for (int y = 0; y < ySeriesList.Length; y++)
+                {
+                    var xSeries = this;
+                    var ySeries = ySeriesList[y];
+                    int yi = xi + (int)((int)this.IDOffset - (int)ySeries.IDOffset);
+                    string vy = "";
+                    if (yi >= 0 && yi < ySeries.Count)
+                        vy = PhysLoggerSharedResources.FormatNumber(ySeries[yi], PhysLoggerSharedResources.SignificantFiguresAfterDecimalForFiles, PhysLoggerSharedResources.NumberFormatForFiles);
+                    sb.Write(vy + ((y + 1 < ySeriesList.Length) ? ", " : ""));
+                }
+                sb.WriteLine();
+            }
+            return UTF8Encoding.Default.GetString(fs.ToArray());
+        }
 
         internal void ChangeUnits(IUnit selected)
         {

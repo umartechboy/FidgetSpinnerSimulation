@@ -10,7 +10,13 @@ namespace FidgetSpinnerWASM2.Models
         public event EventHandler OnRequestToDraw;
         public Magnet()
         {
+            Id = Guid.NewGuid();
         }
+        // For magnet removal from menu
+        [DataMember]
+        public Guid Id { get; set; }
+        [DataMember]
+        ForceCalculation ForceCalculation { get; set; } = ForceCalculation.Characteristics;
         [DataMember]
         public float H { get; set; } = 6 / 1000.0F;
         [DataMember]
