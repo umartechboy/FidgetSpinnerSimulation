@@ -65,16 +65,13 @@
                         }
                         @foreach (var spinner in spinners)
                         {
-                            <MudNavLink>
-                                <MudStack Row Justify="Justify.SpaceBetween">
-                                    <MudText Typo="Typo.body1">@("Spinner " + (spinner.ID))</MudText>
-                                    <MudIconButton Icon="@Icons.Material.Filled.Settings" OnClick="() => { spinnerToEdit = spinner; spinnerEditorVisible = true; }"></MudIconButton>
-                                </MudStack>
+                            <MudNavLink Icon="@Icons.Material.Filled.Settings" IconColor="Color.Warning" OnClick="() => {spinnerToEdit = spinner; spinnerEditorVisible = true; }">
+                                @("Spinner " + (spinner.ID))
                             </MudNavLink>
                         }
-                        <MudItem Style="padding-left: 24px">
-                            <MudButton StartIcon="@Icons.Material.Filled.Add" Color="MudBlazor.Color.Success" OnClick="AddSpinner">Add Spinner</MudButton>
-                        </MudItem>
+                        <MudNavLink Icon="@Icons.Material.Filled.AddBox" IconColor="MudBlazor.Color.Success" OnClick="AddSpinner">
+                            Add Spinner
+                        </MudNavLink>
                     </MudNavMenu>
                 </MudPaper>
             </MudItem>
@@ -109,7 +106,7 @@
 </MudGrid>
 
 @* Spinner Editor *@
-<MudDialog @bind-Visible="spinnerEditorVisible" Options="@(new() { FullWidth = true, MaxWidth=MaxWidth.ExtraLarge })">
+<MudDialog @bind-Visible="spinnerEditorVisible" Options="@(new() { FullWidth = true, MaxWidth=MaxWidth.Large })">
     <TitleContent>
         <MudText Typo="Typo.h6">
             <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3" /> Edit Spinner
@@ -123,11 +120,8 @@
         else
         {
             <MudGrid>
-                <MudItem md="6">
+                <MudItem md="4">
                     <MudText Typo="Typo.h4">Spinner</MudText>
-                    <MudItem>
-                        <MudButton Class="mx-6" StartIcon="@Icons.Material.Filled.Remove" Color="MudBlazor.Color.Error" OnClick="() => {spinners.Remove(spinnerToEdit); StateHasChanged();}">Remove</MudButton>
-                    </MudItem>
                     <MudItem>
                         <MudSlider T="float" Value="@spinnerToEdit.Rmm" ValueChanged="(v) => spinnerToEdit.Rmm = v" Min="1" Max="500" Step="0.5F">Radius (mm) = @spinnerToEdit.Rmm</MudSlider>
                     </MudItem>
@@ -150,7 +144,7 @@
                         <MudButton StartIcon="@Icons.Material.Filled.Remove" Color="MudBlazor.Color.Error" OnClick="() => { spinners.Remove(spinnerToEdit); spinnerToEdit = null; spinnerEditorVisible = false; }">Remove this spinner</MudButton>
                     </MudItem>
                 </MudItem>
-                <MudItem md="6">
+                <MudItem md="8">
 
                     <MudText Typo="Typo.h4">Magnets</MudText>
 
@@ -169,7 +163,7 @@
                                     <MudSlider T="float" Value="@magnet.Rmm" ValueChanged="(v) => magnet.Rmm = v" Min="1" Max="50">Radius (mm) = @magnet.Rmm</MudSlider>
                                 </MudItem>
                                 <MudItem>
-                                    <MudSlider T="float" Value="@magnet.Hmm" ValueChanged="(v) => magnet.Hmm = v" Min="1" Max="50">Height (mm) = @magnet.Hmm</MudSlider>
+                                    <MudSlider T="float" Value="@magnet.moment" ValueChanged="(v) => magnet.moment = v" Min="0" Max="50.0F" Step="0.1F">Dipole moment (A/m^2) = @magnet.moment</MudSlider>
                                 </MudItem>
                                 <MudItem>
                                     <MudSlider T="float" Value="@magnet.Massg" ValueChanged="(v) => magnet.Massg = v" Min="1" Max="200">Mass (g) = @magnet.Massg</MudSlider>
@@ -180,9 +174,6 @@
                             </MudTabPanel>
                         }
                     </MudDynamicTabs>
-                    <MudItem>
-                        <MudButton StartIcon="@Icons.Material.Filled.Add" Color="MudBlazor.Color.Success" OnClick="() => AddNewMagnet(spinnerToEdit)">Add Magnet</MudButton>
-                    </MudItem>
                 </MudItem>
             </MudGrid>
 
@@ -205,6 +196,9 @@
             <MudItem md="12">
                 <MudCheckBox @bind-Value="realTimeSim" Label="Real time update"></MudCheckBox>
                 <MudCheckBox @bind-Value="showLabels" Label="Display Labels"></MudCheckBox>
+                <MudItem>
+                    <MudSlider T="float" Value="@sim.mu" ValueChanged="(v) => sim.mu = v" Min="0" Max="1F" Step="0.00000001F">Permeability of free space (T/A) = @sim.mu</MudSlider>
+                </MudItem>
             </MudItem>
             <MudItem md="12">
             </MudItem>

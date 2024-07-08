@@ -17,6 +17,7 @@ namespace FidgetSpinnerWASM2.Models
         public double dt = 0.0001;
         public List<double> times = new List<double>();
         public List<SpinnerSimResult> results = new ();
+        public float mu { get; set; } = (float)(4 * Math.PI * Math.Pow(10, -7));
         public bool canStep { get; set; } = false;
         public void Reset()
         {
@@ -120,33 +121,17 @@ namespace FidgetSpinnerWASM2.Models
                     // calculate moment arm vector
                     var r = position1 - center1;
 
-
                     // calculate force vector
-                    var d = position2 - position1; // this vector has the right direction but not the right length.
-                                                   // Calculate force now
-                    var f1 = MagFieldFromDistance(magnet1.R, magnet1.H, magnet1.Polarity); // field 1
-                    var f2 = MagFieldFromDistance(magnet2.R, magnet2.H, magnet2.Polarity); // field 2
-                                                                                           // find out the unit vector in this direction first
+                    var d = position2 - position1; // this vector has the right direction but not the right length.                                                                                        // find out the unit vector in this direction first
                     var d_mag = d.Length();
-                    var F_mag = (float)(f1 * f2 / Math.Pow(d_mag, 3)); // lets assume that the field varies cubically.
-                    var F_u = d / d_mag;
-                    var F = F_mag * F_u;
-
+                    var F = (float)(3.0D / 4.0D * mu * magnet1.moment * magnet2.moment / Math.PI / Math.Pow(d_mag, 5)) * d;
+                    if (magnet1.Polarity != magnet2.Polarity)
+                        F *= -1;
                     var tau = Vector3.Cross(r, F);
                     totalTorque = totalTorque + tau;
                 }
             }
             return totalTorque;
-        }
-        double MagFieldFromDistance(double r, double magnetHeight, bool magnetPolarity) 
-        {
-            var M = 0.2 * magnetHeight;
-            var mu_o = 5e-5;
-            var B_r = (mu_o * M) / (4 * Math.PI * Math.Pow(r, 3)); // Mag field strength at this distance.
-            if (magnetPolarity)
-                return B_r;
-            else
-                return -B_r;
         }
     }
     public class SpinnerSimResult
