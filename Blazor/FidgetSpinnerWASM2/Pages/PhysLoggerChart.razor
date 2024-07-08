@@ -1,0 +1,107 @@
+﻿@using FidgetSpinnerWASM2.Pages.LivePlots
+@using SkiaSharp
+@using SkiaSharp.Views
+
+<div style="width: 100%; height: @Height; cursor: @Cursor"
+     @onmousemove:preventDefault="true"
+     @onmousedown:preventDefault="true"
+     @onmouseup:preventDefault="true"
+     @onclick:preventDefault="true"
+>
+    <SkiaSharp.Views.Blazor.SKGLView @ref="skView"
+                                     @onmousemove="mouseMove"
+                                     @onmousedown="mouseDown"
+                                     @onmouseup="mouseUp"
+                                     @onclick="mouseClick"
+                                     OnPaintSurface="OnPaint"
+                                     IgnorePixelScaling="true" style="width: 100%; height: 100%;"></SkiaSharp.Views.Blazor.SKGLView>
+</div>  
+@code {
+    [Parameter]
+    public string Height { get; set; } = "400px";
+
+    public XYPlot Plot = new XYPlot("text plot");
+    SkiaSharp.Views.Blazor.SKGLView skView;
+    string Cursor = "default";
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+        Plot.SetXSource(new LoggerTerminalQuantity(){IsTime = true});
+    }
+    bool firstPaint = true;
+    void OnPaint(SkiaSharp.Views.Blazor.SKPaintGLSurfaceEventArgs e)
+    {
+        if (firstPaint)
+        {
+            Plot.Width = e.Info.Width;
+            Plot.Height = e.Info.Height;
+            Plot.ResetAxisBounds();
+            firstPaint = false;
+        }
+        Plot.OnPaint(e.Surface.Canvas, new System.Text.StringBuilder());
+    }
+    void mouseMove(MouseEventArgs e)
+    {
+        Plot.ProcessMouseMove(new SKPoint((float)e.OffsetX, (float)e.OffsetY));
+        Cursor = Plot.CursorStyle;
+    }
+    void mouseDown(MouseEventArgs e)
+    {
+        Plot.ProcessMouseDown(new SKPoint((float)e.OffsetX, (float)e.OffsetY));
+    }
+    void mouseUp(MouseEventArgs e)
+    {
+        Plot.ProcessMouseUp(new SKPoint((float)e.OffsetX, (float)e.OffsetY));
+    }
+    void mouseClick(MouseEventArgs e)
+    {
+        Plot.ProcessMouseClick(new SKPoint((float)e.OffsetX, (float)e.OffsetY));
+    }
+    public void Invalidate()
+    {
+        skView.Invalidate();
+    }
+
+    bool isHeld = false;
+    public void holdOn()
+    {
+        isHeld = true;
+    }
+    public void holdOff()
+    {
+        isHeld = false;
+    }
+    int colorInd = 0;
+    public void clear()
+    {
+        colorInd = 0;
+        var allQs = Plot.YAxis.DataSeries.Select(s => s.BindingQuantity).ToList();
+        foreach(var q in allQs)
+            Plot.RemoveYSource(q, Plot.YAxis);
+        Plot.XSeries.Data.Clear();
+        StateHasChanged();
+    }
+    public void plot(List<SKPoint> xy, string legend)
+    {
+        if (!isHeld)
+            clear();
+        Plot.XSeries.Data.Clear();
+        Plot.XSeries.Data.AddRange(xy.Select(xy => (float)xy.X));
+        Plot.AddYSource(new LoggerTerminalQuantity());
+
+        Plot.YAxis.DataSeries.Last().Data.AddRange(xy.Select(xy => (float)xy.Y));
+        Plot.YAxis.DataSeries.Last().BindingQuantity.Title = legend;
+        var cs = GraphicsUtils.CommonColors();
+        Plot.YAxis.DataSeries.Last().BindingQuantity.Color = cs[colorInd % cs.Length];
+        colorInd++;
+        StateHasChanged();
+    }
+    public void plot(float[] x, float[] y, string legend)
+    {
+        var points = new List<SKPoint>();
+        for (int i = 0; i < x.Length; i++)
+            points.Add(new SKPoint { X = (float)x[i], Y = (float)y[i] });
+        plot(points, legend);
+    }
+}
