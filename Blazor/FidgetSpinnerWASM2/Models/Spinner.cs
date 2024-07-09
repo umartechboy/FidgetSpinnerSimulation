@@ -101,7 +101,7 @@ namespace FidgetSpinnerWASM2.Models
             }
             for (int ii = 0; ii < Magnets.Count; ii++) {
 
-                var thI = th + thD * (ii - 1) - Math.PI / 2;
+                var thI = th + thD * ii;
                 var cx = (float)(R * (float)Math.Cos(thI) + Position.X);
                 var cy = (float)(R * (float)Math.Sin(thI) + Position.Y);
                 SKColor col = SKColors.Black;

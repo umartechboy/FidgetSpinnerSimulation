@@ -6,6 +6,7 @@ using System.ComponentModel;
 using static MudBlazor.Defaults.Classes;
 using System;
 using System.Text;
+using Typography.OpenFont.Tables;
 namespace FidgetSpinnerWASM2.Models
 {
     public class Simulation
@@ -18,6 +19,7 @@ namespace FidgetSpinnerWASM2.Models
         public List<double> times = new List<double>();
         public List<SpinnerSimResult> results = new ();
         public float mu { get; set; } = (float)(4 * Math.PI * Math.Pow(10, -7));
+        public bool magnetsAreHorizontal { get; set; } = false;
         public bool canStep { get; set; } = false;
         public void Reset()
         {
@@ -103,8 +105,8 @@ namespace FidgetSpinnerWASM2.Models
             {
                 for (int is2 = 0; is2 < spinner2.Magnets.Count; is2++) // itereate through spinner 2 magnets
                 {
-                    double thI1 = spinner1.th + thD1 * (is1 - 1); // angle of magnet ith on spinner 1 in global f.o.r
-                    double thI2 = spinner2.th + thD2 * (is2 - 1); // angle of magnet ith on spinner 2 in global f.o.r
+                    double thI1 = spinner1.th + thD1 * is1; // angle of magnet ith on spinner 1 in global f.o.r
+                    double thI2 = spinner2.th + thD2 * is2; // angle of magnet ith on spinner 2 in global f.o.r
 
                     // for simplicity, lets extract the magnets
                     var magnet1 = spinner1.Magnets[is1];
@@ -114,18 +116,33 @@ namespace FidgetSpinnerWASM2.Models
                     // to calculate torque, we need the center of spinner and positions
                     // of the two magents
                     var center1 = spinner1.Position;
-                    var position1 = new Vector3((float)(spinner1.R * Math.Sin(thI1)), (float)(spinner1.R * Math.Cos(thI1)), 0) + spinner1.Position;
-                    var position2 = new Vector3((float)(spinner2.R * Math.Sin(thI2)), (float)(spinner2.R * Math.Cos(thI2)), 0) + spinner2.Position;
+                    var position1 = new Vector3((float)(spinner1.R * Math.Cos(thI1)), (float)(spinner1.R * Math.Sin(thI1)), 0) + spinner1.Position;
+                    var position2 = new Vector3((float)(spinner2.R * Math.Cos(thI2)), (float)(spinner2.R * Math.Sin(thI2)), 0) + spinner2.Position;
 
 
                     // calculate moment arm vector
                     var r = position1 - center1;
 
                     // calculate force vector
-                    var d = position2 - position1; // this vector has the right direction but not the right length.                                                                                        // find out the unit vector in this direction first
+                    var d = position2 - position1; // this vector has the right direction but not the right length for force.                                                                                        // find out the unit vector in this direction first
                     var d_mag = d.Length();
                     var F = (float)(3.0D / 4.0D * mu * magnet1.moment * magnet2.moment / Math.PI / Math.Pow(d_mag, 5)) * d;
-                    if (magnet1.Polarity != magnet2.Polarity)
+                    var m1 = magnet1.moment * Vector3.UnitZ;
+                    var m2 = magnet2.moment * Vector3.UnitZ;
+                    if (magnetsAreHorizontal)
+                    {
+                        Vector3 makeVector(double angle) => new Vector3((float)Math.Cos(angle), (float)Math.Sin(angle), 0);
+
+                        m1 = magnet1.moment * makeVector(thD1);
+                        m2 = magnet1.moment * makeVector(thD2);
+                    }
+                    var F2 = 3 * mu / (4 * (float)Math.PI * (float)Math.Pow(d_mag, 5)) * (
+                        + Vector3.Dot(m1, d) * m2 
+                        + Vector3.Dot(m2, d) * m1 
+                        + Vector3.Dot(m1, m2) * d 
+                        - 5 * Vector3.Dot(m1, d) * Vector3.Dot(m1, d) * d / (float)Math.Pow(d_mag, 2));
+                  
+                    if (magnet1.Polarity == magnet2.Polarity)
                         F *= -1;
                     var tau = Vector3.Cross(r, F);
                     totalTorque = totalTorque + tau;
