@@ -1,137 +1,143 @@
 ﻿@using FidgetSpinnerWASM2.Models
 
-<MudDrawer Open="@(spinnerToEdit != null)" Width="40vw" Anchor="Anchor.End" Elevation="1" Variant="@DrawerVariant.Temporary">
-    <MudDrawerHeader>
-        <MudText Typo="Typo.h6">Fidget Spinner Simulation</MudText>
-    </MudDrawerHeader>
-    @if (spinnerToEdit == null)
-    {
-        <MudText Typo="Typo.h3" Color="Color.Error">Error: No spinner selected for editing</MudText>
-    }
-    else
-    {
-        <MudGrid Class="px-4">
-            <MudItem md="12">
-                <MudText Typo="Typo.h4">Spinner</MudText>
-                <MudItem>
-                    <MudSlider T="float" Value="@spinnerToEdit.Rmm" ValueChanged="(v) => spinnerToEdit.Rmm = v" Min="1" Max="500" Step="0.5F">Radius (mm) = @spinnerToEdit.Rmm</MudSlider>
+@if (spinnerEditorVisible)
+{
+    <MudDrawer Open="spinnerEditorVisible" OpenChanged="spinnerEditorVisibleChanged" Width="50vw" Anchor="Anchor.End" Elevation="1" Variant="@DrawerVariant.Temporary" MiniWidth="800px">
+        <MudDrawerHeader>
+            <MudText Typo="Typo.h6">Configure</MudText>
+        </MudDrawerHeader>
+        @if (spinnerToEdit == null)
+        {
+            <MudText Typo="Typo.h3" Color="Color.Error">Error: No spinner selected for editing</MudText>
+        }
+        else
+        {
+            <MudGrid Class="px-4">
+                <MudItem md="12">
+                    <MudText Typo="Typo.h4">Spinner @spinnerToEdit.ID</MudText>
+                    <MudItem>
+                        <MudSlider T="float" Value="@spinnerToEdit.Rmm" ValueChanged="(v) => spinnerToEdit.Rmm = v" Min="1" Max="500" Step="0.5F">Radius (mm) = @spinnerToEdit.Rmm</MudSlider>
+                    </MudItem>
+                    <MudItem>
+                        <MudSlider T="float" Value="@spinnerToEdit.Xmm" ValueChanged="(v) => spinnerToEdit.Xmm = v" Min="-500" Max="500" Step="0.5F">Center X (mm) = @spinnerToEdit.Xmm</MudSlider>
+                    </MudItem>
+                    <MudItem>
+                        <MudSlider T="float" Value="@spinnerToEdit.Ymm" ValueChanged="(v) => spinnerToEdit.Ymm = v" Min="-500" Max="500" Step="0.5F">Center Y (mm) = @spinnerToEdit.Ymm</MudSlider>
+                    </MudItem>
+                    <MudItem>
+                        <MudCheckBox T="bool" Value="@spinnerToEdit.IsPowered" ValueChanged="(v) => spinnerToEdit.IsPowered = v" Label="Constant Speed"></MudCheckBox>
+                    </MudItem>
+                    <MudItem>
+                        <MudSlider T="float" Value="@spinnerToEdit.RPM" ValueChanged="(v) => spinnerToEdit.RPM = v" Min="-1000" Max="1000" Step="1.0F">Fixed Speed (rpm) = @(spinnerToEdit.RPM)</MudSlider>
+                    </MudItem>
+                    <MudItem>
+                        <MudSlider T="float" Value="@spinnerToEdit.BNmms" ValueChanged="(v) => spinnerToEdit.BNmms = v" Min="0" Max="5" Step="0.001F">Friction (N.mm.s) = @spinnerToEdit.BNmms</MudSlider>
+                    </MudItem>
+                    <MudItem>
+                        <MudButton StartIcon="@Icons.Material.Filled.Remove" Color="MudBlazor.Color.Error" OnClick="() => { spinners.Remove(spinnerToEdit); SpinnerRemoved.InvokeAsync(); spinnerToEdit = null; }">Remove this spinner</MudButton>
+                    </MudItem>
                 </MudItem>
-                <MudItem>
-                    <MudSlider T="float" Value="@spinnerToEdit.Xmm" ValueChanged="(v) => spinnerToEdit.Xmm = v" Min="-500" Max="500" Step="0.5F">Center X (mm) = @spinnerToEdit.Xmm</MudSlider>
-                </MudItem>
-                <MudItem>
-                    <MudSlider T="float" Value="@spinnerToEdit.Ymm" ValueChanged="(v) => spinnerToEdit.Ymm = v" Min="-500" Max="500" Step="0.5F">Center Y (mm) = @spinnerToEdit.Ymm</MudSlider>
-                </MudItem>
-                <MudItem>
-                    <MudCheckBox T="bool" Value="@spinnerToEdit.IsPowered" ValueChanged="(v) => spinnerToEdit.IsPowered = v" Label="Constant Speed"></MudCheckBox>
-                </MudItem>
-                <MudItem>
-                    <MudSlider T="float" Value="@spinnerToEdit.RPM" ValueChanged="(v) => spinnerToEdit.RPM = v" Min="-1000" Max="1000" Step="1.0F">Fixed Speed (rpm) = @(spinnerToEdit.RPM)</MudSlider>
-                </MudItem>
-                <MudItem>
-                    <MudSlider T="float" Value="@spinnerToEdit.BNmms" ValueChanged="(v) => spinnerToEdit.BNmms = v" Min="0" Max="5" Step="0.001F">Friction (N.mm.s) = @spinnerToEdit.BNmms</MudSlider>
-                </MudItem>
-                <MudItem>
-                    <MudButton StartIcon="@Icons.Material.Filled.Remove" Color="MudBlazor.Color.Error" OnClick="() => { spinners.Remove(spinnerToEdit); SpinnerRemoved.InvokeAsync(); spinnerToEdit = null; }">Remove this spinner</MudButton>
-                </MudItem>
-            </MudItem>
-            <MudItem md="12">
+                <MudItem md="12">
 
-                <MudText Typo="Typo.h4">Magnets</MudText>
+                    <MudText Typo="Typo.h4">Magnets</MudText>
 
-                @if (spinnerToEdit.Magnets.Count == 0)
-                {
-                    <MudNavLink Disabled="true">No Magnets added</MudNavLink>
-                }
-                <MudDynamicTabs AddTab="() => {AddNewMagnet(spinnerToEdit); StateHasChanged(); }" CloseTab="(panel) => removeMagnet((Guid)panel.ID)" AddIconToolTip="Add Magnet">
-                    @foreach (var magnet in spinnerToEdit.Magnets)
+                    @if (spinnerToEdit.Magnets.Count == 0)
                     {
-                        <MudTabPanel ID="magnet.Id" Text="@("Magnet " + (spinnerToEdit.Magnets.IndexOf(magnet) + 1))" ShowCloseIcon="true" @onclose="() => {spinnerToEdit.RemoveMagnet(magnet);}">
-
-                            <MudStack Row Justify="Justify.SpaceBetween">
-                                <MudCheckBox T="bool" Value="@magnet.Polarity" ValueChanged="(v) => magnet.Polarity = v" Label="North is Up"></MudCheckBox>
-
-                                <MudStack Row Justify="Justify.FlexEnd">
-                                    <MudTooltip Text="Apply to other magnets in this spinners">
-                                        <MudIconButton OnClick="() => spinnerToEdit.Magnets.ForEach(m => m.Polarity = magnet.Polarity)" Icon="@Icons.Material.Filled.AutoFixNormal"></MudIconButton>
-                                    </MudTooltip>
-                                    <MudTooltip Text="Apply to all the spinners">
-                                        <MudIconButton OnClick="() => spinners.ForEach(s => s.Magnets.ForEach(m => m.Polarity = magnet.Polarity))" Icon="@Icons.Material.Filled.AutoFixHigh"></MudIconButton>
-                                    </MudTooltip>
-                                </MudStack>
-                            </MudStack>
-
-                            <MudStack Row Justify="Justify.SpaceBetween">
-                                <MudSlider T="float" Value="@magnet.Rmm" ValueChanged="(v) => magnet.Rmm = v" Min="1" Max="50">Radius (mm) = @magnet.Rmm</MudSlider>
-
-                                <MudStack Row Justify="Justify.FlexEnd">
-                                    <MudTooltip Text="Apply to other magnets in this spinners">
-                                        <MudIconButton OnClick="() => spinnerToEdit.Magnets.ForEach(m => m.Rmm = magnet.Rmm)" Icon="@Icons.Material.Filled.AutoFixNormal"></MudIconButton>
-                                    </MudTooltip>
-                                    <MudTooltip Text="Apply to all the spinners">
-                                        <MudIconButton OnClick="() => spinners.ForEach(s => s.Magnets.ForEach(m => m.Rmm = magnet.Rmm))" Icon="@Icons.Material.Filled.AutoFixHigh"></MudIconButton>
-                                    </MudTooltip>
-                                </MudStack>
-                            </MudStack>
-
-                            <MudStack Row Justify="Justify.SpaceBetween">
-                                <MudSlider T="float" Value="@magnet.Rmm" ValueChanged="(v) => magnet.Rmm = v" Min="1" Max="50">Radius (mm) = @magnet.Rmm</MudSlider>
-
-                                <MudStack Row Justify="Justify.FlexEnd">
-                                    <MudTooltip Text="Apply to other magnets in this spinners">
-                                        <MudIconButton OnClick="() => spinnerToEdit.Magnets.ForEach(m => m.Rmm = magnet.Rmm)" Icon="@Icons.Material.Filled.AutoFixNormal"></MudIconButton>
-                                    </MudTooltip>
-                                    <MudTooltip Text="Apply to all the spinners">
-                                        <MudIconButton OnClick="() => spinners.ForEach(s => s.Magnets.ForEach(m => m.Rmm = magnet.Rmm))" Icon="@Icons.Material.Filled.AutoFixHigh"></MudIconButton>
-                                    </MudTooltip>
-                                </MudStack>
-                            </MudStack>
-                            <MudStack Row Justify="Justify.SpaceBetween">
-                                <MudSlider T="float" Value="@magnet.Hmm" ValueChanged="(v) => magnet.Hmm = v" Min="1" Max="50">Height (mm) = @magnet.Hmm</MudSlider>
-
-                                <MudStack Row Justify="Justify.FlexEnd">
-                                    <MudTooltip Text="Apply to other magnets in this spinners">
-                                        <MudIconButton OnClick="() => spinnerToEdit.Magnets.ForEach(m => m.Hmm = magnet.Hmm)" Icon="@Icons.Material.Filled.AutoFixNormal"></MudIconButton>
-                                    </MudTooltip>
-                                    <MudTooltip Text="Apply to all the spinners">
-                                        <MudIconButton OnClick="() => spinners.ForEach(s => s.Magnets.ForEach(m => m.Hmm = magnet.Hmm))" Icon="@Icons.Material.Filled.AutoFixHigh"></MudIconButton>
-                                    </MudTooltip>
-                                </MudStack>
-                            </MudStack>
-                            <MudStack Row Justify="Justify.SpaceBetween">
-                                <MudSlider T="float" Value="@magnet.moment" ValueChanged="(v) => magnet.moment = v" Min="0" Max="50.0F" Step="0.1F">Dipole moment (A/m^2) = @magnet.moment</MudSlider>
-
-                                <MudStack Row Justify="Justify.FlexEnd">
-                                    <MudTooltip Text="Apply to other magnets in this spinners">
-                                        <MudIconButton OnClick="() => spinnerToEdit.Magnets.ForEach(m => m.moment = magnet.moment)" Icon="@Icons.Material.Filled.AutoFixNormal"></MudIconButton>
-                                    </MudTooltip>
-                                    <MudTooltip Text="Apply to all the spinners">
-                                        <MudIconButton OnClick="() => spinners.ForEach(s => s.Magnets.ForEach(m => m.moment = magnet.moment))" Icon="@Icons.Material.Filled.AutoFixHigh"></MudIconButton>
-                                    </MudTooltip>
-                                </MudStack>
-                            </MudStack>
-                            <MudStack Row Justify="Justify.SpaceBetween">
-                                <MudSlider T="float" Value="@magnet.Massg" ValueChanged="(v) => magnet.Massg = v" Min="1" Max="200">Mass (g) = @magnet.Massg</MudSlider>
-
-                                <MudStack Row Justify="Justify.FlexEnd">
-                                    <MudTooltip Text="Apply to other magnets in this spinners">
-                                        <MudIconButton OnClick="() => spinnerToEdit.Magnets.ForEach(m => m.Massg = magnet.Massg)" Icon="@Icons.Material.Filled.AutoFixNormal"></MudIconButton>
-                                    </MudTooltip>
-                                    <MudTooltip Text="Apply to all the spinners">
-                                        <MudIconButton OnClick="() => spinners.ForEach(s => s.Magnets.ForEach(m => m.Massg = magnet.Massg))" Icon="@Icons.Material.Filled.AutoFixHigh"></MudIconButton>
-                                    </MudTooltip>
-                                </MudStack>
-                            </MudStack>
-                            <MudButton StartIcon="@Icons.Material.Filled.Remove" Color="MudBlazor.Color.Error" OnClick="() => { spinnerToEdit.RemoveMagnet(magnet); StateHasChanged(); }">Remove this magnet</MudButton>
-                        </MudTabPanel>
+                        <MudNavLink Disabled="true">No Magnets added</MudNavLink>
                     }
-                </MudDynamicTabs>
-            </MudItem>
-        </MudGrid>
-        <SpinnerEditor spinnerToEdit="spinnerToEdit" spinners="spinners" SpinnerRemoved="() => spinnerToEdit = null"></SpinnerEditor>
-    }
-</MudDrawer>
+                    <MudDynamicTabs AddTab="() => {AddNewMagnet(spinnerToEdit); StateHasChanged(); }" CloseTab="(panel) => removeMagnet((Guid)panel.ID)" AddIconToolTip="Add Magnet">
+                        @foreach (var magnet in spinnerToEdit.Magnets)
+                        {
+                            <MudTabPanel ID="magnet.Id" Text="@("Magnet " + (spinnerToEdit.Magnets.IndexOf(magnet) + 1))" ShowCloseIcon="true" @onclose="() => {spinnerToEdit.RemoveMagnet(magnet);}">
+
+                                <MudStack Row Justify="Justify.SpaceBetween">
+                                    <MudCheckBox T="bool" Value="@magnet.Polarity" ValueChanged="(v) => magnet.Polarity = v" Label="North is Up"></MudCheckBox>
+
+                                    <MudStack Row Justify="Justify.FlexEnd">
+                                        <MudTooltip Text="Apply to other magnets in this spinners">
+                                            <MudIconButton OnClick="() => spinnerToEdit.Magnets.ForEach(m => m.Polarity = magnet.Polarity)" Icon="@Icons.Material.Filled.AutoFixNormal"></MudIconButton>
+                                        </MudTooltip>
+                                        <MudTooltip Text="Apply to all the spinners">
+                                            <MudIconButton OnClick="() => spinners.ForEach(s => s.Magnets.ForEach(m => m.Polarity = magnet.Polarity))" Icon="@Icons.Material.Filled.AutoFixHigh"></MudIconButton>
+                                        </MudTooltip>
+                                    </MudStack>
+                                </MudStack>
+
+                                <MudStack Row Justify="Justify.SpaceBetween">
+                                    <MudSlider T="float" Value="@magnet.Rmm" ValueChanged="(v) => magnet.Rmm = v" Min="1" Max="50">Radius (mm) = @magnet.Rmm</MudSlider>
+
+                                    <MudStack Row Justify="Justify.FlexEnd">
+                                        <MudTooltip Text="Apply to other magnets in this spinners">
+                                            <MudIconButton OnClick="() => spinnerToEdit.Magnets.ForEach(m => m.Rmm = magnet.Rmm)" Icon="@Icons.Material.Filled.AutoFixNormal"></MudIconButton>
+                                        </MudTooltip>
+                                        <MudTooltip Text="Apply to all the spinners">
+                                            <MudIconButton OnClick="() => spinners.ForEach(s => s.Magnets.ForEach(m => m.Rmm = magnet.Rmm))" Icon="@Icons.Material.Filled.AutoFixHigh"></MudIconButton>
+                                        </MudTooltip>
+                                    </MudStack>
+                                </MudStack>
+
+                                <MudStack Row Justify="Justify.SpaceBetween">
+                                    <MudSlider T="float" Value="@magnet.Rmm" ValueChanged="(v) => magnet.Rmm = v" Min="1" Max="50">Radius (mm) = @magnet.Rmm</MudSlider>
+
+                                    <MudStack Row Justify="Justify.FlexEnd">
+                                        <MudTooltip Text="Apply to other magnets in this spinners">
+                                            <MudIconButton OnClick="() => spinnerToEdit.Magnets.ForEach(m => m.Rmm = magnet.Rmm)" Icon="@Icons.Material.Filled.AutoFixNormal"></MudIconButton>
+                                        </MudTooltip>
+                                        <MudTooltip Text="Apply to all the spinners">
+                                            <MudIconButton OnClick="() => spinners.ForEach(s => s.Magnets.ForEach(m => m.Rmm = magnet.Rmm))" Icon="@Icons.Material.Filled.AutoFixHigh"></MudIconButton>
+                                        </MudTooltip>
+                                    </MudStack>
+                                </MudStack>
+                                <MudStack Row Justify="Justify.SpaceBetween">
+                                    <MudSlider T="float" Value="@magnet.Hmm" ValueChanged="(v) => magnet.Hmm = v" Min="1" Max="50">Height (mm) = @magnet.Hmm</MudSlider>
+
+                                    <MudStack Row Justify="Justify.FlexEnd">
+                                        <MudTooltip Text="Apply to other magnets in this spinners">
+                                            <MudIconButton OnClick="() => spinnerToEdit.Magnets.ForEach(m => m.Hmm = magnet.Hmm)" Icon="@Icons.Material.Filled.AutoFixNormal"></MudIconButton>
+                                        </MudTooltip>
+                                        <MudTooltip Text="Apply to all the spinners">
+                                            <MudIconButton OnClick="() => spinners.ForEach(s => s.Magnets.ForEach(m => m.Hmm = magnet.Hmm))" Icon="@Icons.Material.Filled.AutoFixHigh"></MudIconButton>
+                                        </MudTooltip>
+                                    </MudStack>
+                                </MudStack>
+                                <MudStack Row Justify="Justify.SpaceBetween">
+                                    <MudSlider T="float" Value="@magnet.moment" ValueChanged="(v) => magnet.moment = v" Min="0" Max="50.0F" Step="0.1F">Dipole moment (A/m^2) = @magnet.moment</MudSlider>
+
+                                    <MudStack Row Justify="Justify.FlexEnd">
+                                        <MudTooltip Text="Apply to other magnets in this spinners">
+                                            <MudIconButton OnClick="() => spinnerToEdit.Magnets.ForEach(m => m.moment = magnet.moment)" Icon="@Icons.Material.Filled.AutoFixNormal"></MudIconButton>
+                                        </MudTooltip>
+                                        <MudTooltip Text="Apply to all the spinners">
+                                            <MudIconButton OnClick="() => spinners.ForEach(s => s.Magnets.ForEach(m => m.moment = magnet.moment))" Icon="@Icons.Material.Filled.AutoFixHigh"></MudIconButton>
+                                        </MudTooltip>
+                                    </MudStack>
+                                </MudStack>
+                                <MudStack Row Justify="Justify.SpaceBetween">
+                                    <MudSlider T="float" Value="@magnet.Massg" ValueChanged="(v) => magnet.Massg = v" Min="1" Max="200">Mass (g) = @magnet.Massg</MudSlider>
+
+                                    <MudStack Row Justify="Justify.FlexEnd">
+                                        <MudTooltip Text="Apply to other magnets in this spinners">
+                                            <MudIconButton OnClick="() => spinnerToEdit.Magnets.ForEach(m => m.Massg = magnet.Massg)" Icon="@Icons.Material.Filled.AutoFixNormal"></MudIconButton>
+                                        </MudTooltip>
+                                        <MudTooltip Text="Apply to all the spinners">
+                                            <MudIconButton OnClick="() => spinners.ForEach(s => s.Magnets.ForEach(m => m.Massg = magnet.Massg))" Icon="@Icons.Material.Filled.AutoFixHigh"></MudIconButton>
+                                        </MudTooltip>
+                                    </MudStack>
+                                </MudStack>
+                                <MudButton StartIcon="@Icons.Material.Filled.Remove" Color="MudBlazor.Color.Error" OnClick="() => { spinnerToEdit.RemoveMagnet(magnet); StateHasChanged(); }">Remove this magnet</MudButton>
+                            </MudTabPanel>
+                        }
+                    </MudDynamicTabs>
+                </MudItem>
+            </MudGrid>
+        }
+    </MudDrawer>
+}
 @code {
+    [Parameter]
+    public bool spinnerEditorVisible { get; set; }
+    [Parameter]
+    public EventCallback<bool> spinnerEditorVisibleChanged { get; set; }
     [Parameter]
     public EventCallback SpinnerRemoved { get; set; }
     [Parameter]

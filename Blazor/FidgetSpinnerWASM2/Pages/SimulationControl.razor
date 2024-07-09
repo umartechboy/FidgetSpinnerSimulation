@@ -1,0 +1,21 @@
+﻿@using FidgetSpinnerWASM2.Models
+
+<MudPaper Elevation="5" Class="pa-4">
+    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+        <MudText Typo="Typo.h6" Class="px-4">Simulation Control</MudText>
+        <MudText>Time: @sim.t.ToString("F4")</MudText>
+
+        <MudButtonGroup>
+            <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" OnClick="sim.Play"></MudIconButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Pause" OnClick="sim.Pause"></MudIconButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Settings" OnClick="OpenSettings"></MudIconButton>
+        </MudButtonGroup>
+
+    </MudStack>
+</MudPaper>
+@code {
+    [Parameter]
+    public Simulation sim { get; set; }
+    [Parameter]
+    public EventCallback OpenSettings { get; set; }
+}

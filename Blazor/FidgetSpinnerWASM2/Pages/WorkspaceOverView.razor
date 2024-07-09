@@ -1,0 +1,109 @@
+﻿@using FidgetSpinnerWASM2.Models
+@using System.Runtime.Serialization.Json
+@using System.Text
+@using System.Numerics
+
+@inject IJSRuntime JSRuntime
+
+<MudPaper Elevation="5">
+    <MudNavMenu>
+        <MudGrid Class="px-4 my-2">
+            <MudItem md="10">
+                <MudText Typo="Typo.h6" Class="px-4">Bodies Config</MudText>
+            </MudItem>
+            <MudItem md="1">
+                <MudIconButton Icon="@Icons.Material.Filled.Save" OnClick="SaveConfig"></MudIconButton>
+            </MudItem>
+            <MudItem md="1">
+                <MudFileUpload T="IBrowserFile" Accept=".json" FilesChanged="UploadConfig">
+                    <ActivatorContent>
+                        <MudIconButton Color="Color.Primary"
+                                       Icon="@Icons.Material.Filled.CloudUpload">
+                        </MudIconButton>
+                    </ActivatorContent>
+                </MudFileUpload>
+            </MudItem>
+        </MudGrid>
+
+        @if (spinners.Count == 0)
+        {
+            <MudNavLink Disabled="true">No spinners added</MudNavLink>
+        }
+        @foreach (var spinner in spinners)
+        {
+            <MudNavLink Icon="@Icons.Material.Filled.Settings" IconColor="Color.Warning" OnClick="() => EditSpinner.InvokeAsync(spinner)">
+                @("Spinner " + (spinner.ID))
+            </MudNavLink>
+        }
+        <MudNavLink Icon="@Icons.Material.Filled.AddBox" IconColor="MudBlazor.Color.Success" OnClick="AddSpinner">
+            Add Spinner
+        </MudNavLink>
+    </MudNavMenu>
+</MudPaper>
+@code {
+    [Parameter]
+    public Simulation sim { get; set; }
+    [Parameter]
+    public EventCallback NewConfig { get; set; }
+    [Parameter]
+    public EventCallback<Spinner> EditSpinner { get; set; }
+
+    List<Models.Spinner> spinners { get => sim.spinners; }
+
+    void SaveConfig()
+    {
+        var jsonSer = new DataContractJsonSerializer(typeof(List<Spinner>));
+        var stream = new MemoryStream();
+        jsonSer.WriteObject(stream, sim.spinners);
+        var data = new UTF8Encoding().GetString(stream.ToArray());
+        JSRuntime.InvokeVoidAsync("downloadString", "SimulationConfig.json", data);
+    }
+    async Task UploadConfig(IBrowserFile file)
+    {
+        var jsonSer = new DataContractJsonSerializer(typeof(List<Spinner>));
+        var str = await new StreamReader(file.OpenReadStream()).ReadToEndAsync();
+
+        var spinners = (List<Spinner>)jsonSer.ReadObject(new MemoryStream(UTF8Encoding.Default.GetBytes(str)));
+        if (spinners == null)
+            return;
+        sim.spinners = spinners;
+        foreach (var sp in spinners)
+            sp.SimResult = new SpinnerSimResult();
+        sim.t = 0;
+        sim.canStep = false;
+        StateHasChanged();
+    }
+
+    public void AddSpinner()
+    {
+        bool breakFinder = false;
+        float x = 0, y = 0;
+        for (y = 0.0F; y < 0.4; y += 0.1F)
+        {
+            for (x = -0.4F; x < 0.4; x += 0.1F)
+            {
+                bool allClear = true;
+                foreach (var spinner in spinners)
+                {
+                    var thisRect = new System.Drawing.RectangleF(x, y, 0.1F, 0.1F);
+                    var spinnerRect = new System.Drawing.RectangleF(spinner.Position.X - spinner.R * 1.5F, spinner.Position.Y - spinner.R * 1.5F, spinner.R * 3, spinner.R * 3);
+                    if (thisRect.IntersectsWith(spinnerRect) || thisRect.Contains(spinnerRect) || spinnerRect.Contains(thisRect))
+                    {
+                        allClear = false;
+                        break;
+                    }
+                }
+                if (allClear)
+                {
+                    breakFinder = true;
+                    break;
+                }
+            }
+            if (breakFinder)
+                break;
+        }
+        var s = new Models.Spinner(4, 40 / 1000, new Vector3(x, y, 0), new bool[] { true, false, true, false });
+        spinners.Add(s);
+        StateHasChanged();
+    }
+}

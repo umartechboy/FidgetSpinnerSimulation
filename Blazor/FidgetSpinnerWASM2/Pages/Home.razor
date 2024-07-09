@@ -6,6 +6,7 @@
 @using System.Numerics
 @using System.Runtime.Serialization.Json
 @using System.Text
+
 @inject IJSRuntime JSRuntime
 
 <MudGrid>
@@ -15,101 +16,25 @@
         @onmousemove="mouseMove">
             <SkiaSharp.Views.Blazor.SKGLView @ref="skView"
             OnPaintSurface="OnPaint"
-            IgnorePixelScaling="true" style="width: 100%; height: 100%;"
-            ></SkiaSharp.Views.Blazor.SKGLView>
+            IgnorePixelScaling="true" style="width: 100%; height: 100%;"></SkiaSharp.Views.Blazor.SKGLView>
                 </div>
         </MudPaper>
     </MudItem>
     <MudItem md="5" Style="height: 100vh">
-        <MudGrid>
-            <MudItem md="12">
-                <MudPaper Elevation="5" Class="pa-4">
-                    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-                        <MudText Typo="Typo.h6" Class="px-4">Simulation Control</MudText>
-                        <MudText>Time: @sim.t.ToString("F4")</MudText>
-
-                        <MudButtonGroup>
-                            <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" OnClick="sim.Play"></MudIconButton>
-                            <MudIconButton Icon="@Icons.Material.Filled.Pause" OnClick="sim.Pause"></MudIconButton>
-                            <MudIconButton Icon="@Icons.Material.Filled.Settings" OnClick="() => settingsVisible = true"></MudIconButton>
-                        </MudButtonGroup>
-
-                    </MudStack>
-                </MudPaper>
-            </MudItem>
-            <MudItem md="12">
-                <MudPaper Elevation="5">
-                    <MudNavMenu>
-                        <MudGrid Class="px-4 my-2">
-                            <MudItem md="10">
-                                <MudText Typo="Typo.h6" Class="px-4">Bodies Config</MudText>
-                            </MudItem>
-                            <MudItem md="1">
-                                <MudIconButton Icon="@Icons.Material.Filled.Save" OnClick="SaveConfig"></MudIconButton>
-                            </MudItem>
-                            <MudItem md="1">
-                                <MudFileUpload T="IBrowserFile" Accept=".json" FilesChanged="UploadConfig">
-                                    <ActivatorContent>
-                                        <MudIconButton
-                                                   Color="Color.Primary"
-                                                   Icon="@Icons.Material.Filled.CloudUpload">
-                                        </MudIconButton>
-                                    </ActivatorContent>
-                                </MudFileUpload>
-                            </MudItem>
-                        </MudGrid>                        
-                        
-                        @if (spinners.Count == 0)
-                        {
-                            <MudNavLink Disabled="true">No spinners added</MudNavLink>
-                        }
-                        @foreach (var spinner in spinners)
-                        {
-                            <MudNavLink Icon="@Icons.Material.Filled.Settings" IconColor="Color.Warning" OnClick="() => {spinnerToEdit = spinner; spinnerEditorVisible = true; }">
-                                @("Spinner " + (spinner.ID))
-                            </MudNavLink>
-                        }
-                        <MudNavLink Icon="@Icons.Material.Filled.AddBox" IconColor="MudBlazor.Color.Success" OnClick="AddSpinner">
-                            Add Spinner
-                        </MudNavLink>
-                    </MudNavMenu>
-                </MudPaper>
-            </MudItem>
-            <MudItem md="12">
-                <MudPaper Elevation="5" Class="px-4 py-5">
-                    <MudGrid>
-                        <MudItem md="8">
-                            <MudSelect T="AnalysisItem" Label="Plot" Variant="Variant.Filled" AnchorOrigin="Origin.BottomCenter" SelectedValuesChanged="(item) => updatePlot(item)">
-                                <MudSelectItem Value="@(new AnalysisItem("Acceleration",sim.times, sim.spinners.Select(sp => sp.SimResult.accelerations).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
-                                <MudSelectItem Value="@(new AnalysisItem("Angular Speed",sim.times, sim.spinners.Select(sp => sp.SimResult.velocities).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
-                                <MudSelectItem Value="@(new AnalysisItem("Displacement",sim.times, sim.spinners.Select(sp => sp.SimResult.displacements).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
-                                <MudSelectItem Value="@(new AnalysisItem("Magnetic Torque",sim.times, sim.spinners.Select(sp => sp.SimResult.torques).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
-                                <MudSelectItem Value="@(new AnalysisItem("Frictional Torque",sim.times, sim.spinners.Select(sp => sp.SimResult.frictions).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
-                                <MudSelectItem Value="@(new AnalysisItem("Net Torque",sim.times, sim.spinners.Select(sp => sp.SimResult.netTorques).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
-                                <MudSelectItem Value="@(new AnalysisItem("Kinetic Energy", sim.times, sim.spinners.Select(sp => sp.SimResult.kineticEnergy).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
-                            </MudSelect>
-                        </MudItem>
-                        <MudItem md="2">
-                            <MudButton EndIcon="@Icons.Material.Filled.Refresh" FullWidth="true" Style="height: 100%" OnClick="updateCurrentPlot"></MudButton>
-                        </MudItem>
-                        <MudItem md="2">
-                            <MudButton EndIcon="@Icons.Material.Filled.Save" FullWidth="true" Style="height: 100%" OnClick="saveCurrentPlot"></MudButton>
-                        </MudItem>
-                    </MudGrid>
-                    <MudItem Class="py-2">
-                        <PhysLoggerChart @ref="plotter"></PhysLoggerChart>
-                    </MudItem>
-                </MudPaper>
-            </MudItem>
-        </MudGrid>
+        <MudStack>
+            <SimulationControl sim="sim" OpenSettings="()=> settingsVisible = true"></SimulationControl>
+            <WorkspaceOverView sim="sim" NewConfig="NewConfig" EditSpinner="EditSpinner"></WorkspaceOverView>
+            <AnalysisPreview @ref="analysis" sim="sim"></AnalysisPreview>
+        </MudStack>
     </MudItem>
 </MudGrid>
 
-<SpinnerEditor spinnerToEdit="spinnerToEdit" spinners="spinners" SpinnerRemoved="() => spinnerToEdit = null"></SpinnerEditor>
+<SpinnerEditor @bind-spinnerEditorVisible="spinnerEditorVisible" spinnerToEdit="spinnerToEdit" spinners="spinners" SpinnerRemoved="() => spinnerToEdit = null"></SpinnerEditor>
 <SimSettings @bind-settingsVisible="settingsVisible" @bind-realTimeSim="realTimeSim" @bind-showLabels="showLabels"  sim="sim"></SimSettings>
 
 @code{
     Spinner spinnerToEdit = null;
+    AnalysisPreview analysis;
     bool spinnerEditorVisible = false;
     public Models.Spinner selectedSpinner;
     public Simulation sim = new Simulation();
@@ -118,69 +43,10 @@
     bool realTimeSim = false;
     bool showLabels = false;
     bool settingsVisible = false;
-    //Plotter plotter; 
-    PhysLoggerChart plotter;
-
-    void SaveConfig()
-    {
-        var jsonSer = new DataContractJsonSerializer(typeof(List<Spinner>));
-        var stream = new MemoryStream();
-        jsonSer.WriteObject(stream, sim.spinners);
-        var data = new UTF8Encoding().GetString(stream.ToArray());
-        JSRuntime.InvokeVoidAsync("downloadString", "SimulationConfig.json", data);
-    }
-    async Task UploadConfig(IBrowserFile file)
-    {
-        var jsonSer = new DataContractJsonSerializer(typeof(List<Spinner>));
-        var str = await new StreamReader(file.OpenReadStream()).ReadToEndAsync();
-
-        var spinners = (List<Spinner>)jsonSer.ReadObject(new MemoryStream(UTF8Encoding.Default.GetBytes(str)));
-        if (spinners == null)
-            return;
-        sim.spinners = spinners;
-        foreach (var sp in spinners)
-            sp.SimResult = new SpinnerSimResult();
-        sim.t = 0;
-        sim.canStep = false;
-        currentSimResultItem = null;
-        updateCurrentPlot();
-        StateHasChanged();
-    }
-    AnalysisItem currentSimResultItem;
-    void saveCurrentPlot()
-    {
-        if (currentSimResultItem == null)
-            return;
-        var dataToSave = plotter.Plot.XSeries.SaveAgainst(plotter.Plot.YAxis.DataSeries.ToArray());
-        JSRuntime.InvokeVoidAsync("downloadString", currentSimResultItem.itemTitle + " data.csv", dataToSave);
-    }
-    void updateCurrentPlot()
-    {
-        plotter.clear();
-        if (currentSimResultItem == null)
-        {
-            StateHasChanged();
-            return;
-        }
-        plotter.holdOn();
-        for (int i =0; i < currentSimResultItem.ids.Length; i++)
-        {
-            var id = currentSimResultItem.ids[i];
-            var x = currentSimResultItem.X;
-            var y = currentSimResultItem.Y[i];
-            plotter.plot(x.Select(_v => (float)_v).ToArray(), y.Select(_v => (float)_v).ToArray(), id);
-        }
-        StateHasChanged();
-    }
-    void updatePlot(IEnumerable<Models.AnalysisItem> _item)
-    {
-        currentSimResultItem = _item.ToArray()[0];
-        updateCurrentPlot();
-    }
     void updateUI()
     {
         StateHasChanged();
-        plotter.Invalidate();
+
         // update plot too
 
     }
@@ -199,7 +65,7 @@
             foreach(var spinner in spinners)
                 spinner.OnRequestToDraw += (s, e) => skView.Invalidate();
             new Task(async () => { await Task.Delay(2000); updateUI(); }).Start();
-            sim.OnRequestToDraw += (s, e) => { skView.Invalidate(); plotter.Invalidate(); };
+            sim.OnRequestToDraw += (s, e) => { skView.Invalidate(); analysis.Invalidate(); };
             sim.OnRequestToUpdateState += (s, e) => updateUI();
 
             new Task(async () =>
@@ -208,49 +74,22 @@
                 while (true)
                 {
                     skView.Invalidate();
-                    plotter.Invalidate();
+                    analysis.Invalidate();
                     await Task.Delay(20);
                 }
             }).Start();
 
         }
     }
-    public void AddSpinner()
+    void EditSpinner(Spinner spinner)
     {
-        bool breakFinder = false;
-        float x = 0, y = 0;
-        for (y = 0.0F; y < 0.4; y += 0.1F)
-        {
-            for (x = -0.4F; x < 0.4; x += 0.1F)
-            {
-                bool allClear = true;
-                foreach (var spinner in spinners)
-                {
-                    var thisRect = new System.Drawing.RectangleF(x, y, 0.1F, 0.1F);
-                    var spinnerRect = new System.Drawing.RectangleF(spinner.Position.X - spinner.R * 1.5F, spinner.Position.Y - spinner.R * 1.5F, spinner.R * 3, spinner.R * 3);
-                    if (thisRect.IntersectsWith(spinnerRect) || thisRect.Contains(spinnerRect) || spinnerRect.Contains(thisRect))
-                    {
-                        allClear = false;
-                        break;
-                    }
-                }
-                if (allClear)
-                {
-                    breakFinder = true;
-                    break;
-                }
-            }
-            if (breakFinder)
-                break;
-        }
-        var s = new Models.Spinner(4, 40 / 1000, new Vector3(x, y, 0), new bool[] { true, false, true, false });
-        s.OnRequestToDraw += (s, e) =>
-        {
-            skView.Invalidate(); plotter.Invalidate();
-        };
-
-        spinners.Add(s);
-        updateUI();
+        spinnerToEdit = spinner; 
+        spinnerEditorVisible = true; 
+    }
+    void NewConfig()
+    {
+        analysis.clear();
+        analysis.updateCurrentPlot();
     }
     public void mouseMove(MouseEventArgs e)
     {
@@ -278,6 +117,6 @@
 
         spinners.ForEach((s) => s.Draw(canvas, showLabels));
         skView.Invalidate();
-        plotter.Invalidate();
+        analysis.Invalidate();
     }
 }

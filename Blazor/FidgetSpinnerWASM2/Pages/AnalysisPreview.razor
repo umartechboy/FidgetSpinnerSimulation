@@ -1,0 +1,79 @@
+﻿@using FidgetSpinnerWASM2.Models
+@inject IJSRuntime JSRuntime
+
+<MudPaper Elevation="5" Class="px-4 py-5">
+    <MudGrid>
+        <MudItem md="8">
+            <MudSelect T="AnalysisItem" Label="Plot" Variant="Variant.Filled" AnchorOrigin="Origin.BottomCenter" SelectedValuesChanged="(item) => updatePlot(item)">
+                <MudSelectItem Value="@(new AnalysisItem("Acceleration",sim.times, sim.spinners.Select(sp => sp.SimResult.accelerations).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
+                <MudSelectItem Value="@(new AnalysisItem("Angular Speed",sim.times, sim.spinners.Select(sp => sp.SimResult.velocities).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
+                <MudSelectItem Value="@(new AnalysisItem("Displacement",sim.times, sim.spinners.Select(sp => sp.SimResult.displacements).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
+                <MudSelectItem Value="@(new AnalysisItem("Magnetic Torque",sim.times, sim.spinners.Select(sp => sp.SimResult.torques).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
+                <MudSelectItem Value="@(new AnalysisItem("Frictional Torque",sim.times, sim.spinners.Select(sp => sp.SimResult.frictions).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
+                <MudSelectItem Value="@(new AnalysisItem("Net Torque",sim.times, sim.spinners.Select(sp => sp.SimResult.netTorques).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
+                <MudSelectItem Value="@(new AnalysisItem("Kinetic Energy", sim.times, sim.spinners.Select(sp => sp.SimResult.kineticEnergy).ToArray(), sim.spinners.Select(sp => "Spinner " + sp.ID).ToArray()))" />
+            </MudSelect>
+        </MudItem>
+        <MudItem md="2">
+            <MudButton EndIcon="@Icons.Material.Filled.Refresh" FullWidth="true" Style="height: 100%" OnClick="updateCurrentPlot"></MudButton>
+        </MudItem>
+        <MudItem md="2">
+            <MudButton EndIcon="@Icons.Material.Filled.Save" FullWidth="true" Style="height: 100%" OnClick="saveCurrentPlot"></MudButton>
+        </MudItem>
+    </MudGrid>
+    <MudItem Class="py-2">
+        <PhysLoggerChart @ref="plotter"></PhysLoggerChart>
+    </MudItem>
+</MudPaper>
+@code {
+    [Parameter]
+    public Simulation sim { get; set; }
+
+    public void updateUI()
+    {
+        StateHasChanged();
+    }
+    public void Invalidate()
+    {
+        plotter.Invalidate();
+    }
+    //Plotter plotter;
+    PhysLoggerChart plotter;
+
+    AnalysisItem currentSimResultItem;
+    void updatePlot(IEnumerable<Models.AnalysisItem> _item)
+    {
+        currentSimResultItem = _item.ToArray()[0];
+        updateCurrentPlot();
+    }
+
+    void saveCurrentPlot()
+    {
+        if (currentSimResultItem == null)
+            return;
+        var dataToSave = plotter.Plot.XSeries.SaveAgainst(plotter.Plot.YAxis.DataSeries.ToArray());
+        JSRuntime.InvokeVoidAsync("downloadString", currentSimResultItem.itemTitle + " data.csv", dataToSave);
+    }
+    public void clear()
+    {
+        currentSimResultItem = null;
+    }
+    public void updateCurrentPlot()
+    {
+        plotter.clear();
+        if (currentSimResultItem == null)
+        {
+            StateHasChanged();
+            return;
+        }
+        plotter.holdOn();
+        for (int i = 0; i < currentSimResultItem.ids.Length; i++)
+        {
+            var id = currentSimResultItem.ids[i];
+            var x = currentSimResultItem.X;
+            var y = currentSimResultItem.Y[i];
+            plotter.plot(x.Select(_v => (float)_v).ToArray(), y.Select(_v => (float)_v).ToArray(), id);
+        }
+        StateHasChanged();
+    }
+}
