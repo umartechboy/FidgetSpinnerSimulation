@@ -6,6 +6,7 @@ using System.Numerics;
 using static MudBlazor.Colors;
 using System.Threading.Tasks;
 using System.Runtime.Serialization;
+using Typography.OpenFont.Tables;
 
 namespace FidgetSpinnerWASM2.Models
 {
@@ -85,7 +86,6 @@ namespace FidgetSpinnerWASM2.Models
             var thD = 2 * Math.PI / Magnets.Count;
             if (showLabels)
             {
-                
                 canvas.Save();
                 canvas.Scale(1, -1);
                 canvas.DrawText(ID.ToString(), Position.X, -Position.Y, new SKPaint(new SKFont()
@@ -104,19 +104,62 @@ namespace FidgetSpinnerWASM2.Models
                 var thI = th + thD * ii;
                 var cx = (float)(R * (float)Math.Cos(thI) + Position.X);
                 var cy = (float)(R * (float)Math.Sin(thI) + Position.Y);
-                SKColor col = SKColors.Black;
-                if (Magnets[ii].Polarity)
-                    col = SKColors.Red;
-                var paint = new SKPaint()
+                SKColor colS = SKColors.Black;
+                SKColor colN = SKColors.Red;
+                canvas.Save();
+                canvas.Translate(cx, cy);
+                if (Magnets[ii].IsRadial)
                 {
-                    IsStroke = true,
-                    Color = col,
-                    StrokeWidth = 0.002F,
-                };
-                canvas.DrawCircle(cx, cy, Magnets[ii].R, paint);
-                paint.IsStroke = false;
-                paint.Color = paint.Color.WithAlpha(150);
-                canvas.DrawCircle(cx, cy, Magnets[ii].R, paint);
+                    var paintN = new SKPaint()
+                    {
+                        IsStroke = true,
+                        Color = colN,
+                        StrokeWidth = 0.002F,
+                    };
+                    var paintS = new SKPaint()
+                    {
+                        IsStroke = true,
+                        Color = colS,
+                        StrokeWidth = 0.002F,
+                    };
+                    var m = Magnets[ii];
+                    SKRect rectS = new SKRect(-m.H / 2, -m.R, 0, m.R);
+                    SKRect rectN = new SKRect(0, -m.R, m.H / 2, m.R);
+                    canvas.RotateRadians((float)(Magnets[ii].RadialTh + thI), 0, 0);
+
+                    if (!Magnets[ii].Polarity)
+                    {
+                        var t = rectS;
+                        rectS = rectN;
+                        rectN = t;
+                    }
+                    //canvas.DrawRect(rectS, paintS);
+                    paintS.IsStroke = false;
+                    paintS.Color = paintS.Color.WithAlpha(150);
+                    canvas.DrawRect(rectS, paintS);
+
+                    //canvas.DrawRect(rectN, paintN);
+                    paintN.IsStroke = false;
+                    paintN.Color = paintN.Color.WithAlpha(150);
+                    canvas.DrawRect(rectN, paintN);
+                }
+                else
+                {
+                    var paint = new SKPaint()
+                    {
+                        IsStroke = true,
+                        Color = colS,
+                        StrokeWidth = 0.002F,
+                    };
+                    if (Magnets[ii].Polarity)
+                        paint.Color = colN;
+
+                    canvas.DrawCircle(0, 0, Magnets[ii].R, paint);
+                    paint.IsStroke = false;
+                    paint.Color = paint.Color.WithAlpha(150);
+                    canvas.DrawCircle(0, 0, Magnets[ii].R, paint);
+                }
+                canvas.Restore();
                 if (showLabels)
                 {
                     // text will be inverted. transform the canvas
@@ -133,13 +176,16 @@ namespace FidgetSpinnerWASM2.Models
                     });
                     canvas.Restore();
                 }
+                var paintL = new SKPaint()
+                {
+                    IsStroke = true,
+                    Color = colS,
+                    StrokeWidth = 0.002F,
+                };
                 if (IsPowered)
-                    col = SKColors.Red;
-                else
-                    col = SKColors.Black;
-                paint.Color = col;
+                    paintL.Color = colN;
                 canvas.DrawLine(
-                    cx, cy, Position.X, Position.Y, paint);
+                    cx, cy, Position.X, Position.Y, paintL);
             }
         }
     }

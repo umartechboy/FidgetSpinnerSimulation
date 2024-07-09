@@ -19,7 +19,7 @@ namespace FidgetSpinnerWASM2.Models
         public List<double> times = new List<double>();
         public List<SpinnerSimResult> results = new ();
         public float mu { get; set; } = (float)(4 * Math.PI * Math.Pow(10, -7));
-        public bool magnetsAreHorizontal { get; set; } = false;
+        
         public bool canStep { get; set; } = false;
         public void Reset()
         {
@@ -94,10 +94,10 @@ namespace FidgetSpinnerWASM2.Models
             
             t += dt;
         }
+        public static Vector3 Vector3UnitXY(double angle) => new Vector3((float)Math.Cos(angle), (float)Math.Sin(angle), 0);
         // Calculates the torque on spinner 1 by spinner 2
         Vector3 calculateTorque(Spinner spinner1, Spinner spinner2)
         {
-
             Vector3 totalTorque = new Vector3();
             double thD1 = 2 * Math.PI / spinner1.Magnets.Count; // angle between magnets on spinner 1
             double thD2 = 2 * Math.PI / spinner2.Magnets.Count; // angle between magnets on spinner 2
@@ -126,17 +126,15 @@ namespace FidgetSpinnerWASM2.Models
                     // calculate force vector
                     var d = position2 - position1; // this vector has the right direction but not the right length for force.                                                                                        // find out the unit vector in this direction first
                     var d_mag = d.Length();
-                    var F = (float)(3.0D / 4.0D * mu * magnet1.moment * magnet2.moment / Math.PI / Math.Pow(d_mag, 5)) * d;
+                    //var F = (float)(3.0D / 4.0D * mu * magnet1.moment * magnet2.moment / Math.PI / Math.Pow(d_mag, 5)) * d;
                     var m1 = magnet1.moment * Vector3.UnitZ;
                     var m2 = magnet2.moment * Vector3.UnitZ;
-                    if (magnetsAreHorizontal)
-                    {
-                        Vector3 makeVector(double angle) => new Vector3((float)Math.Cos(angle), (float)Math.Sin(angle), 0);
-
-                        m1 = magnet1.moment * makeVector(thD1);
-                        m2 = magnet1.moment * makeVector(thD2);
-                    }
-                    var F2 = 3 * mu / (4 * (float)Math.PI * (float)Math.Pow(d_mag, 5)) * (
+                    var thM1M2 = Math.Atan2(d.Y, d.X);
+                    if (magnet1.IsRadial)
+                        m1 = magnet1.moment * Vector3UnitXY(thD1 + magnet1.RadialTh + thM1M2);
+                    if (magnet2.IsRadial)
+                        m2 = magnet2.moment * Vector3UnitXY(thD2 + magnet2.RadialTh + thM1M2);
+                    var F = 3 * mu / (4 * (float)Math.PI * (float)Math.Pow(d_mag, 5)) * (
                         + Vector3.Dot(m1, d) * m2 
                         + Vector3.Dot(m2, d) * m1 
                         + Vector3.Dot(m1, m2) * d 
